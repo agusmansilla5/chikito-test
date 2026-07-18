@@ -48,7 +48,7 @@ export async function createProduct(input: ProductInput, initialQuantity: number
   revalidatePath('/products');
   revalidatePath('/dashboard');
   revalidatePath('/audits');
-  return { error: null };
+  return { error: null, product };
 }
 
 export async function updateProduct(id: string, input: ProductInput) {
