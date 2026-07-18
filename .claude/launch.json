@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-dashboard",
+      "runtimeExecutable": "C:\\Users\\Gustavo\\Desktop\\PROGRAMACIÓN\\nodejs\\node.exe",
+      "runtimeArgs": [
+        "C:\\Users\\Gustavo\\Downloads\\proyectos claude\\web\\node_modules\\next\\dist\\bin\\next",
+        "dev",
+        "C:\\Users\\Gustavo\\Downloads\\proyectos claude\\web"
+      ],
+      "port": 3000
+    }
+  ]
+}

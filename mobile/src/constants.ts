@@ -1,0 +1,15 @@
+export const BARCODE_TYPES = [
+  'aztec',
+  'codabar',
+  'code39',
+  'code93',
+  'code128',
+  'datamatrix',
+  'ean13',
+  'ean8',
+  'itf14',
+  'pdf417',
+  'upc_a',
+  'upc_e',
+  'qr',
+] as const;
