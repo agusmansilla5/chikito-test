@@ -228,7 +228,7 @@ export function ProductsClient({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
+      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-background text-left text-foreground">
             <tr>

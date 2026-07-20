@@ -44,7 +44,7 @@ export default async function AuditsPage() {
       {canStart && <StartAuditForm />}
 
       <h2 className="mb-3 text-lg font-medium text-foreground">Historial de auditorías</h2>
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
+      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-background text-left text-foreground">
             <tr>

@@ -80,16 +80,18 @@ export function Sidebar({
   profile,
   locations,
   selectedLocationValue,
+  onNavigate,
 }: {
   profile: Profile;
   locations: Location[];
   selectedLocationValue: string | null;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const items = NAV_ITEMS.filter((item) => !item.adminOnly || profile.role === 'admin');
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-zinc-200 bg-surface dark:border-zinc-800">
+    <aside className="flex h-full w-full flex-col overflow-y-auto border-r border-zinc-200 bg-surface dark:border-zinc-800">
       <div className="flex items-center gap-2 border-b border-zinc-200 p-4 dark:border-zinc-800">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-700">
           CS
@@ -114,6 +116,7 @@ export function Sidebar({
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-accent/10 text-accent'

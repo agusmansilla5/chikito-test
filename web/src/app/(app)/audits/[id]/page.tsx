@@ -113,7 +113,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
         <h2 className="text-lg font-medium text-foreground">Productos cargados ({summary.length})</h2>
         <AuditExport audit={auditData} summary={summary} />
       </div>
-      <div className="mb-8 overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
+      <div className="mb-8 overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-background text-left text-foreground">
             <tr>
@@ -158,7 +158,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <h2 className="mb-3 text-lg font-medium text-foreground">Detalle de movimientos</h2>
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
+      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
           <thead className="bg-background text-left text-foreground">
             <tr>

@@ -1,6 +1,6 @@
 import { requireProfile } from '@/lib/dal';
 import { getLocations, getSelectedLocationValue } from '@/lib/location';
-import { Sidebar } from './sidebar';
+import { AppShell } from './app-shell';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireProfile();
@@ -8,11 +8,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const selectedLocationValue = await getSelectedLocationValue(locations);
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <Sidebar profile={profile} locations={locations} selectedLocationValue={selectedLocationValue} />
-      <main className="w-full flex-1 overflow-x-hidden px-8 py-8">
-        <div className="mx-auto w-full max-w-5xl">{children}</div>
-      </main>
-    </div>
+    <AppShell profile={profile} locations={locations} selectedLocationValue={selectedLocationValue}>
+      {children}
+    </AppShell>
   );
 }
