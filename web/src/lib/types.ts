@@ -18,6 +18,9 @@ export type Product = {
   quantity: number;
   min_stock: number;
   category_id: string | null;
+  active: boolean;
+  cost_price: number | null;
+  sale_price: number | null;
   categories?: { name: string } | null;
 };
 

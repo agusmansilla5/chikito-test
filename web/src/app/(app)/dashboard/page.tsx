@@ -21,7 +21,7 @@ export default async function DashboardPage() {
         .order('created_at', { ascending: false })
         .limit(50),
       supabase.from('low_stock_products').select('*'),
-      supabase.from('products').select('*, categories(name)').order('name'),
+      supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
       supabase
         .from('stock_movements')
         .select('type, quantity, created_at')
@@ -34,6 +34,13 @@ export default async function DashboardPage() {
 
   const todayKey = new Date().toDateString();
   const movementsToday = movementList.filter((m) => new Date(m.created_at).toDateString() === todayKey).length;
+
+  const stockValue = productList.reduce((sum, p) => sum + p.quantity * (p.cost_price ?? 0), 0);
+  const stockValueLabel = stockValue.toLocaleString('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    maximumFractionDigits: 0,
+  });
 
   const chartData = Array.from({ length: 7 }).map((_, i) => {
     const day = new Date(sevenDaysAgo);
@@ -53,10 +60,11 @@ export default async function DashboardPage() {
 
       <h1 className="mb-6 text-2xl font-semibold text-foreground">Panel de control</h1>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Movimientos de hoy" value={movementsToday} />
         <StatCard label="Productos con stock bajo" value={lowStockList.length} />
         <StatCard label="Productos totales" value={productList.length} />
+        <StatCard label="Valor de stock" value={stockValueLabel} />
       </div>
 
       <div className="mb-8">

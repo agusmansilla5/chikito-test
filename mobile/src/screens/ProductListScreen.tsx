@@ -39,6 +39,7 @@ export default function ProductListScreen({ navigation }: Props) {
     const { data } = await supabase
       .from('products')
       .select('*, categories(name)')
+      .eq('active', true)
       .order('name');
     setProducts((data as Product[]) ?? []);
   }, []);
@@ -62,7 +63,7 @@ export default function ProductListScreen({ navigation }: Props) {
         text: 'Eliminar',
         style: 'destructive',
         onPress: async () => {
-          const { error } = await supabase.from('products').delete().eq('id', product.id);
+          const { error } = await supabase.from('products').update({ active: false }).eq('id', product.id);
           if (error) {
             Alert.alert('Error', error.message);
             return;

@@ -36,7 +36,7 @@ export default function ReportsScreen({ navigation }: Props) {
           .order('created_at', { ascending: false })
           .limit(50),
         supabase.from('low_stock_products').select('*'),
-        supabase.from('products').select('*, categories(name)').order('name'),
+        supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
         supabase
           .from('stock_movements')
           .select('type, quantity, created_at')
@@ -62,6 +62,13 @@ export default function ReportsScreen({ navigation }: Props) {
 
   const todayKey = new Date().toDateString();
   const movementsToday = movements.filter((m) => new Date(m.created_at).toDateString() === todayKey).length;
+
+  const stockValue = allProducts.reduce((sum, p) => sum + p.quantity * (p.cost_price ?? 0), 0);
+  const stockValueLabel = stockValue.toLocaleString('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    maximumFractionDigits: 0,
+  });
 
   const chartData = useMemo(() => {
     const sevenDaysAgo = new Date();
@@ -145,6 +152,9 @@ export default function ReportsScreen({ navigation }: Props) {
             <StatCard label="Movimientos de hoy" value={movementsToday} />
             <StatCard label="Stock bajo" value={lowStock.length} />
             <StatCard label="Productos" value={allProducts.length} />
+          </View>
+          <View style={{ marginBottom: 16 }}>
+            <StatCard label="Valor de stock" value={stockValueLabel} />
           </View>
 
           <View style={{ marginBottom: 16 }}>

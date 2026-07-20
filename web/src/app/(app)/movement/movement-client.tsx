@@ -112,6 +112,8 @@ export function MovementClient({
         barcode: newBarcode.trim() || null,
         min_stock: Number(newMinStock) || 0,
         category_id: newCategoryId,
+        cost_price: null,
+        sale_price: null,
       },
       0
     );

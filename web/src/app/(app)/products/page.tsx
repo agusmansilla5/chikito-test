@@ -8,7 +8,7 @@ export default async function ProductsPage() {
   const supabase = await createClient();
 
   const [{ data: products }, { data: categories }] = await Promise.all([
-    supabase.from('products').select('*, categories(name)').order('name'),
+    supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
     supabase.from('categories').select('*').order('name'),
   ]);
 

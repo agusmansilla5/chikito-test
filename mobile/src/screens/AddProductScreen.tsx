@@ -31,6 +31,8 @@ export default function AddProductScreen({ navigation, route }: Props) {
   const [name, setName] = useState('');
   const [barcode, setBarcode] = useState('');
   const [minStock, setMinStock] = useState('');
+  const [costPrice, setCostPrice] = useState('');
+  const [salePrice, setSalePrice] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -61,6 +63,8 @@ export default function AddProductScreen({ navigation, route }: Props) {
           setName(data.name);
           setBarcode(data.barcode ?? '');
           setMinStock(String(data.min_stock ?? ''));
+          setCostPrice(data.cost_price != null ? String(data.cost_price) : '');
+          setSalePrice(data.sale_price != null ? String(data.sale_price) : '');
           setCategoryId(data.category_id);
         }
         setLoading(false);
@@ -123,6 +127,8 @@ export default function AddProductScreen({ navigation, route }: Props) {
         name: name.trim(),
         barcode: barcode.trim() || null,
         min_stock: Number(minStock) || 0,
+        cost_price: costPrice.trim() ? Number(costPrice) : null,
+        sale_price: salePrice.trim() ? Number(salePrice) : null,
         category_id: categoryId,
       })
       .eq('id', productId);
@@ -152,7 +158,10 @@ export default function AddProductScreen({ navigation, route }: Props) {
         style: 'destructive',
         onPress: async () => {
           setSubmitting(true);
-          const { error: deleteError } = await supabase.from('products').delete().eq('id', productId);
+          const { error: deleteError } = await supabase
+            .from('products')
+            .update({ active: false })
+            .eq('id', productId);
           setSubmitting(false);
           if (deleteError) {
             setError(deleteError.message);
@@ -224,6 +233,31 @@ export default function AddProductScreen({ navigation, route }: Props) {
         value={minStock}
         onChangeText={setMinStock}
       />
+
+      <View style={styles.row}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>Costo (opcional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="0.00"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="numeric"
+            value={costPrice}
+            onChangeText={setCostPrice}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>Precio de venta (opcional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="0.00"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="numeric"
+            value={salePrice}
+            onChangeText={setSalePrice}
+          />
+        </View>
+      </View>
 
       <Text style={styles.label}>Rubro / categoría (opcional)</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>

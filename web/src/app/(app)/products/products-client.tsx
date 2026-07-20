@@ -12,7 +12,14 @@ type FormState = {
   min_stock: string;
   initial_quantity: string;
   category_id: string | null;
+  cost_price: string;
+  sale_price: string;
 };
+
+function marginPct(cost: number | null, sale: number | null) {
+  if (!cost || !sale || sale <= 0) return null;
+  return Math.round(((sale - cost) / sale) * 100);
+}
 
 type SortKey = 'name' | 'barcode' | 'quantity' | 'category';
 
@@ -23,6 +30,8 @@ const EMPTY_FORM: FormState = {
   min_stock: '0',
   initial_quantity: '0',
   category_id: null,
+  cost_price: '',
+  sale_price: '',
 };
 const SIN_RUBRO = 'Sin rubro';
 
@@ -116,6 +125,8 @@ export function ProductsClient({
       min_stock: String(p.min_stock),
       initial_quantity: '0',
       category_id: p.category_id,
+      cost_price: p.cost_price != null ? String(p.cost_price) : '',
+      sale_price: p.sale_price != null ? String(p.sale_price) : '',
     });
     setError(null);
     setModalOpen(true);
@@ -132,6 +143,8 @@ export function ProductsClient({
       barcode: form.barcode.trim() || null,
       min_stock: Number(form.min_stock) || 0,
       category_id: form.category_id,
+      cost_price: form.cost_price.trim() ? Number(form.cost_price) : null,
+      sale_price: form.sale_price.trim() ? Number(form.sale_price) : null,
     };
     const result = form.id
       ? await updateProduct(form.id, input)
@@ -244,13 +257,14 @@ export function ProductsClient({
                 Stock{sortArrow('quantity')}
               </th>
               <th className="px-4 py-2 font-medium">Mínimo</th>
+              <th className="px-4 py-2 font-medium">Margen</th>
               {canEdit && <th className="px-4 py-2 font-medium">Acciones</th>}
             </tr>
           </thead>
           {filtered.length === 0 && (
             <tbody>
               <tr>
-                <td colSpan={canEdit ? 6 : 5} className="px-4 py-6 text-center text-foreground">
+                <td colSpan={canEdit ? 7 : 6} className="px-4 py-6 text-center text-foreground">
                   No se encontraron productos.
                 </td>
               </tr>
@@ -260,7 +274,7 @@ export function ProductsClient({
             <tbody key={categoryName}>
               <tr className="bg-background">
                 <td
-                  colSpan={canEdit ? 6 : 5}
+                  colSpan={canEdit ? 7 : 6}
                   className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground"
                 >
                   {categoryName}
@@ -277,6 +291,9 @@ export function ProductsClient({
                     {p.quantity}
                   </td>
                   <td className="px-4 py-2 text-foreground">{p.min_stock}</td>
+                  <td className="px-4 py-2 text-foreground">
+                    {marginPct(p.cost_price, p.sale_price) != null ? `${marginPct(p.cost_price, p.sale_price)}%` : '—'}
+                  </td>
                   {canEdit && (
                     <td className="px-4 py-2">
                       <button onClick={() => openEdit(p)} className="mr-3 text-accent hover:underline">
@@ -372,6 +389,31 @@ export function ProductsClient({
               onChange={(e) => setForm((f) => ({ ...f, min_stock: e.target.value }))}
               className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             />
+
+            <div className="mb-3 flex gap-2">
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-foreground">Costo (opcional)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={form.cost_price}
+                  onChange={(e) => setForm((f) => ({ ...f, cost_price: e.target.value }))}
+                  className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-foreground">Precio de venta (opcional)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={form.sale_price}
+                  onChange={(e) => setForm((f) => ({ ...f, sale_price: e.target.value }))}
+                  className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+                />
+              </div>
+            </div>
 
             <label className="mb-1 block text-sm font-medium text-foreground">Rubro</label>
             <select

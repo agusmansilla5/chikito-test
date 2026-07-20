@@ -68,7 +68,11 @@ export default function AddMovementScreen({ navigation }: Props) {
   }, []);
 
   async function loadProducts() {
-    const { data } = await supabase.from('products').select('*, categories(name)').order('name');
+    const { data } = await supabase
+      .from('products')
+      .select('*, categories(name)')
+      .eq('active', true)
+      .order('name');
     setProducts((data as Product[]) ?? []);
   }
 

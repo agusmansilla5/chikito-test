@@ -18,7 +18,7 @@ export default async function MovementPage() {
   const supabase = await createClient();
 
   const [{ data: products }, { data: categories }, { data: openAudit }] = await Promise.all([
-    supabase.from('products').select('*, categories(name)').order('name'),
+    supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
     supabase.from('categories').select('*').order('name'),
     supabase.from('audits').select('note').is('ended_at', null).order('started_at', { ascending: false }).limit(1).maybeSingle(),
   ]);

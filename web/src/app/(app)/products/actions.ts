@@ -8,6 +8,8 @@ export type ProductInput = {
   barcode: string | null;
   min_stock: number;
   category_id: string | null;
+  cost_price: number | null;
+  sale_price: number | null;
 };
 
 function describeProductError(error: { code: string; message: string }): string {
@@ -61,9 +63,11 @@ export async function updateProduct(id: string, input: ProductInput) {
 
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from('products').delete().eq('id', id);
+  const { error } = await supabase.from('products').update({ active: false }).eq('id', id);
   if (error) return { error: error.message };
   revalidatePath('/products');
+  revalidatePath('/dashboard');
+  revalidatePath('/movement');
   return { error: null };
 }
 
