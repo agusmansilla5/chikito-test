@@ -11,6 +11,7 @@ import {
   type ThemeColors,
   type ThemeMode,
 } from '@/lib/theme';
+import { APP_TIME_ZONE, formatDate, formatTime } from '@/lib/date';
 
 function expandHex(hex: string): string {
   if (/^#[0-9a-f]{3}$/i.test(hex)) {
@@ -71,6 +72,13 @@ export function SettingsClient() {
   const [overrides, setOverrides] = useState<ThemeColorOverrides>({});
   const [hexInputs, setHexInputs] = useState<ThemeColors>(DEFAULT_COLORS.light);
   const [hexErrors, setHexErrors] = useState<Partial<Record<keyof ThemeColors, string>>>({});
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const storedMode = localStorage.getItem(THEME_MODE_KEY);
@@ -205,6 +213,20 @@ export function SettingsClient() {
             );
           })}
         </div>
+      </section>
+
+      <section className="mt-8 rounded-xl border border-zinc-200 bg-surface p-5 shadow-sm dark:border-zinc-800">
+        <h2 className="mb-1 font-semibold text-foreground">Fecha y hora</h2>
+        <p className="mb-4 text-sm text-foreground">
+          Se ajusta automáticamente al huso horario de Córdoba, Argentina, con formato DD/MM/AAAA.
+        </p>
+        {now && (
+          <div className="flex items-baseline gap-3">
+            <span className="text-2xl font-semibold text-foreground">{formatDate(now)}</span>
+            <span className="text-lg text-foreground">{formatTime(now)}</span>
+          </div>
+        )}
+        <p className="mt-2 text-xs text-foreground">Zona horaria: {APP_TIME_ZONE}</p>
       </section>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import type { StockMovement } from '@/lib/types';
+import { formatDateTime } from '@/lib/date';
 
 function rowsFor(movements: StockMovement[]) {
   return movements.map((m) => ({
@@ -8,7 +9,7 @@ function rowsFor(movements: StockMovement[]) {
     Tipo: m.type === 'entrada' ? 'Entrada' : 'Salida',
     Cantidad: m.quantity,
     Usuario: m.profiles?.full_name ?? '—',
-    Fecha: new Date(m.created_at).toLocaleString('es-AR'),
+    Fecha: formatDateTime(m.created_at),
   }));
 }
 

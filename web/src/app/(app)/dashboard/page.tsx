@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getLocations, getSelectedLocationId } from '@/lib/location';
+import { formatDateTime, formatWeekday } from '@/lib/date';
 import type { Product, StockMovement } from '@/lib/types';
 import { StatCard } from '../stat-card';
 import { RealtimeRefresh } from './realtime-refresh';
@@ -66,7 +67,7 @@ export default async function DashboardPage() {
     const dayKey = day.toDateString();
     const dayMovements = (weekMovements ?? []).filter((m) => new Date(m.created_at).toDateString() === dayKey);
     return {
-      label: day.toLocaleDateString('es-AR', { weekday: 'short' }),
+      label: formatWeekday(day),
       entradas: dayMovements.filter((m) => m.type === 'entrada').reduce((s, m) => s + m.quantity, 0),
       salidas: dayMovements.filter((m) => m.type === 'salida').reduce((s, m) => s + m.quantity, 0),
     };
@@ -191,9 +192,7 @@ export default async function DashboardPage() {
                   </td>
                   <td className="px-4 py-2">{m.quantity}</td>
                   <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
-                  <td className="px-4 py-2 text-foreground">
-                    {new Date(m.created_at).toLocaleString('es-AR')}
-                  </td>
+                  <td className="px-4 py-2 text-foreground">{formatDateTime(m.created_at)}</td>
                 </tr>
               ))}
             </tbody>

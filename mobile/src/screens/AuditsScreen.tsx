@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
 import type { ThemeColors, ThemeCard } from '../theme';
+import { formatDate, formatTime } from '../lib/date';
 import type { Audit } from '../types';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -104,13 +105,7 @@ export default function AuditsScreen({ navigation }: Props) {
         return (
           <View style={styles.row}>
             <View style={styles.rowHeader}>
-              <Text style={styles.date}>
-                {new Date(item.started_at).toLocaleDateString('es-AR', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </Text>
+              <Text style={styles.date}>{formatDate(item.started_at)}</Text>
               <View style={[styles.statusBadge, isOpen ? styles.statusOpen : styles.statusClosed]}>
                 <Text style={isOpen ? styles.statusOpenText : styles.statusClosedText}>
                   {isOpen ? 'En curso' : 'Cerrada'}
@@ -118,9 +113,8 @@ export default function AuditsScreen({ navigation }: Props) {
               </View>
             </View>
             <Text style={styles.meta}>
-              Inicio: {new Date(item.started_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-              {item.ended_at &&
-                ` · Cierre: ${new Date(item.ended_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`}
+              Inicio: {formatTime(item.started_at)}
+              {item.ended_at && ` · Cierre: ${formatTime(item.ended_at)}`}
               {' · '}
               {item.profiles?.full_name ?? '—'}
             </Text>

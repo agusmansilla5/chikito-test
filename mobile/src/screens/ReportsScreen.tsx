@@ -9,6 +9,7 @@ import type { ThemeColors, ThemeCard } from '../theme';
 import { StatCard } from '../components/StatCard';
 import { MovementsChart } from '../components/MovementsChart';
 import { shareCsv, sharePdf } from '../lib/export';
+import { formatDateTime, formatWeekday } from '../lib/date';
 import type { StockMovement, Product } from '../types';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -98,7 +99,7 @@ export default function ReportsScreen({ navigation }: Props) {
       const dayKey = day.toDateString();
       const dayMovements = weekMovements.filter((m) => new Date(m.created_at).toDateString() === dayKey);
       return {
-        label: day.toLocaleDateString('es-AR', { weekday: 'short' }),
+        label: formatWeekday(day),
         entradas: dayMovements.filter((m) => m.type === 'entrada').reduce((s, m) => s + m.quantity, 0),
         salidas: dayMovements.filter((m) => m.type === 'salida').reduce((s, m) => s + m.quantity, 0),
       };
@@ -113,7 +114,7 @@ export default function ReportsScreen({ navigation }: Props) {
       m.type === 'entrada' ? 'Entrada' : 'Salida',
       m.quantity,
       m.profiles?.full_name ?? '—',
-      new Date(m.created_at).toLocaleString('es-AR'),
+      formatDateTime(m.created_at),
     ]);
     try {
       if (format === 'csv') {
@@ -234,7 +235,7 @@ export default function ReportsScreen({ navigation }: Props) {
           <View style={{ flex: 1 }}>
             <Text style={styles.productName}>{item.products?.name ?? 'Producto'}</Text>
             <Text style={styles.meta}>
-              {item.profiles?.full_name ?? ''} · {new Date(item.created_at).toLocaleString()}
+              {item.profiles?.full_name ?? ''} · {formatDateTime(item.created_at)}
             </Text>
             {item.note && <Text style={styles.note}>{item.note}</Text>}
           </View>

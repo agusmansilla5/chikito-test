@@ -1,6 +1,7 @@
 'use client';
 
 import type { Audit } from '@/lib/types';
+import { formatDateTime } from '@/lib/date';
 
 type SummaryRow = {
   name: string;
@@ -42,12 +43,8 @@ export function AuditExport({ audit, summary }: { audit: Audit; summary: Summary
     doc.setFontSize(14);
     doc.text('Auditoría de stock', 14, 16);
     doc.setFontSize(10);
-    doc.text(`Inicio: ${new Date(audit.started_at).toLocaleString('es-AR')}`, 14, 24);
-    doc.text(
-      `Cierre: ${audit.ended_at ? new Date(audit.ended_at).toLocaleString('es-AR') : 'En curso'}`,
-      14,
-      30
-    );
+    doc.text(`Inicio: ${formatDateTime(audit.started_at)}`, 14, 24);
+    doc.text(`Cierre: ${audit.ended_at ? formatDateTime(audit.ended_at) : 'En curso'}`, 14, 30);
     if (audit.note) doc.text(`Nota: ${audit.note}`, 14, 36);
     autoTable(doc, {
       startY: audit.note ? 42 : 36,

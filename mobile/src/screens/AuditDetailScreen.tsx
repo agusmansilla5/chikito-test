@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import type { ThemeColors, ThemeCard } from '../theme';
 import { shareCsv, sharePdf } from '../lib/export';
+import { formatDateTime } from '../lib/date';
 import type { Audit, StockMovement } from '../types';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -180,12 +181,12 @@ export default function AuditDetailScreen({ route }: Props) {
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Inicio</Text>
-              <Text style={styles.infoValue}>{new Date(audit.started_at).toLocaleString('es-AR')}</Text>
+              <Text style={styles.infoValue}>{formatDateTime(audit.started_at)}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Cierre</Text>
               <Text style={styles.infoValue}>
-                {audit.ended_at ? new Date(audit.ended_at).toLocaleString('es-AR') : 'Todavía en curso'}
+                {audit.ended_at ? formatDateTime(audit.ended_at) : 'Todavía en curso'}
               </Text>
             </View>
             <View style={styles.infoRow}>

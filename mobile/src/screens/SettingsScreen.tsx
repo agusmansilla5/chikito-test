@@ -1,14 +1,21 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { isValidHex, PRESET_COLORS, DEFAULT_PRIMARY } from '../theme';
 import type { ThemeColors, ThemeCard } from '../theme';
+import { APP_TIME_ZONE, formatDate, formatTime } from '../lib/date';
 
 export default function SettingsScreen() {
   const { mode, setMode, primaryColor, setPrimaryColor, resetPrimaryColor, colors, card } = useTheme();
   const styles = useMemo(() => createStyles(colors, card), [colors, card]);
   const [hexInput, setHexInput] = useState(primaryColor);
   const [hexError, setHexError] = useState<string | null>(null);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   function applyHex() {
     const trimmed = hexInput.trim();
@@ -95,6 +102,18 @@ export default function SettingsScreen() {
           <Text style={styles.resetLinkText}>Restablecer color por defecto</Text>
         </Pressable>
       </View>
+
+      <Text style={styles.sectionTitle}>Fecha y hora</Text>
+      <View style={styles.card}>
+        <Text style={styles.dateTimeHint}>
+          Se ajusta automáticamente al huso horario de Córdoba, Argentina, con formato DD/MM/AAAA.
+        </Text>
+        <View style={styles.dateTimeRow}>
+          <Text style={styles.dateTimeValue}>{formatDate(now)}</Text>
+          <Text style={styles.dateTimeTime}>{formatTime(now)}</Text>
+        </View>
+        <Text style={styles.dateTimeZone}>Zona horaria: {APP_TIME_ZONE}</Text>
+      </View>
     </ScrollView>
   );
 }
@@ -149,5 +168,10 @@ function createStyles(colors: ThemeColors, card: ThemeCard) {
     hexError: { color: colors.red, fontSize: 12, marginTop: 8 },
     resetLink: { marginTop: 14, alignSelf: 'flex-start' },
     resetLinkText: { color: colors.primary, fontWeight: '600', fontSize: 13 },
+    dateTimeHint: { fontSize: 12, color: colors.textMuted, marginBottom: 10 },
+    dateTimeRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
+    dateTimeValue: { fontSize: 22, fontWeight: '700', color: colors.text },
+    dateTimeTime: { fontSize: 16, color: colors.text },
+    dateTimeZone: { fontSize: 11, color: colors.textMuted, marginTop: 8 },
   });
 }

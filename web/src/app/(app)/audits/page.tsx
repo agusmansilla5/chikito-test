@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { getLocations, getSelectedLocationId } from '@/lib/location';
+import { formatDateTime } from '@/lib/date';
 import type { Audit } from '@/lib/types';
 import { StartAuditForm } from './audits-client';
 
@@ -53,13 +54,9 @@ export default async function AuditsPage() {
               const isOpen = !a.ended_at;
               return (
                 <tr key={a.id} className="border-t border-zinc-100 hover:bg-background dark:border-zinc-800">
-                  <td className="px-4 py-2 font-medium text-foreground">
-                    {new Date(a.started_at).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })}
-                  </td>
+                  <td className="px-4 py-2 font-medium text-foreground">{formatDateTime(a.started_at)}</td>
                   <td className="px-4 py-2 text-foreground">
-                    {a.ended_at
-                      ? new Date(a.ended_at).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })
-                      : '—'}
+                    {a.ended_at ? formatDateTime(a.ended_at) : '—'}
                   </td>
                   <td className="px-4 py-2">
                     <span

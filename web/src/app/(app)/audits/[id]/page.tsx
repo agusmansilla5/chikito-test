@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
+import { formatDate, formatDateTime } from '@/lib/date';
 import type { Audit, StockMovement } from '@/lib/types';
 import { CloseAuditButton } from '../close-button';
 import { NoteEditor } from '../note-editor';
@@ -80,11 +81,11 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">
-            Auditoría del {new Date(auditData.started_at).toLocaleDateString('es-AR', { dateStyle: 'long' })}
+            Auditoría del {formatDate(auditData.started_at)}
           </h1>
           <p className="mt-1 text-sm text-foreground">
-            Inicio: {new Date(auditData.started_at).toLocaleString('es-AR')}
-            {auditData.ended_at && ` · Cierre: ${new Date(auditData.ended_at).toLocaleString('es-AR')}`}
+            Inicio: {formatDateTime(auditData.started_at)}
+            {auditData.ended_at && ` · Cierre: ${formatDateTime(auditData.ended_at)}`}
             {' · '}
             {auditData.profiles?.full_name ?? '—'}
           </p>
@@ -192,7 +193,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
                 </td>
                 <td className="px-4 py-2">{m.quantity}</td>
                 <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
-                <td className="px-4 py-2 text-foreground">{new Date(m.created_at).toLocaleString('es-AR')}</td>
+                <td className="px-4 py-2 text-foreground">{formatDateTime(m.created_at)}</td>
               </tr>
             ))}
           </tbody>
