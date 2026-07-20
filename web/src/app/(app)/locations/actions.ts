@@ -25,7 +25,7 @@ export async function createLocation(name: string, address: string | null) {
       .insert(products.map((p) => ({ product_id: p.id, location_id: data.id, quantity: 0, min_stock: 0 })));
   }
 
-  revalidatePath('/locations');
+  revalidatePath('/', 'layout');
   return { error: null, location: data };
 }
 
@@ -33,7 +33,17 @@ export async function updateLocation(id: string, name: string, address: string |
   const supabase = await createClient();
   const { error } = await supabase.from('locations').update({ name, address }).eq('id', id);
   if (error) return { error: error.message };
-  revalidatePath('/locations');
+  revalidatePath('/', 'layout');
+  return { error: null };
+}
+
+// Version liviana de updateLocation para renombrar rápido desde el selector de local,
+// sin tocar la dirección (que ahí no se edita).
+export async function renameLocation(id: string, name: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('locations').update({ name }).eq('id', id);
+  if (error) return { error: error.message };
+  revalidatePath('/', 'layout');
   return { error: null };
 }
 
@@ -46,6 +56,6 @@ export async function deleteLocation(id: string) {
     }
     return { error: error.message };
   }
-  revalidatePath('/locations');
+  revalidatePath('/', 'layout');
   return { error: null };
 }

@@ -100,7 +100,11 @@ export function Sidebar({
       </div>
 
       <div className="border-b border-zinc-200 p-3 dark:border-zinc-800">
-        <LocationSwitcher locations={locations} selectedValue={selectedLocationValue} />
+        <LocationSwitcher
+          locations={locations}
+          selectedValue={selectedLocationValue}
+          isAdmin={profile.role === 'admin'}
+        />
       </div>
 
       <nav className="flex-1 space-y-1 p-3">
