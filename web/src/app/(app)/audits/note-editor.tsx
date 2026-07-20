@@ -24,7 +24,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
     return (
       <button
         onClick={() => setEditing(true)}
-        className="mt-1 text-left text-sm italic text-zinc-500 hover:text-blue-600 hover:underline"
+        className="mt-1 text-left text-sm italic text-zinc-500 hover:text-blue-600 hover:underline dark:text-zinc-400"
       >
         {initialNote ? initialNote : '+ Agregar nota'}
       </button>
@@ -38,7 +38,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
         onChange={(e) => setNote(e.target.value)}
         rows={2}
         placeholder="Nota sobre esta auditoría..."
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-zinc-700"
       />
       <div className="mt-2 flex gap-2">
         <button
@@ -46,7 +46,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
             setNote(initialNote ?? '');
             setEditing(false);
           }}
-          className="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100"
+          className="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-background dark:text-zinc-400"
         >
           Cancelar
         </button>

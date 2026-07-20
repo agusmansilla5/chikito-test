@@ -5,9 +5,9 @@
       "name": "web-dashboard",
       "runtimeExecutable": "C:\\Users\\Gustavo\\Desktop\\PROGRAMACIÓN\\nodejs\\node.exe",
       "runtimeArgs": [
-        "C:\\Users\\Gustavo\\Downloads\\proyectos claude\\web\\node_modules\\next\\dist\\bin\\next",
+        "C:\\Users\\Gustavo\\Desktop\\PROGRAMACIÓN\\proyectos claude\\web\\node_modules\\next\\dist\\bin\\next",
         "dev",
-        "C:\\Users\\Gustavo\\Downloads\\proyectos claude\\web"
+        "C:\\Users\\Gustavo\\Desktop\\PROGRAMACIÓN\\proyectos claude\\web"
       ],
       "port": 3000
     }

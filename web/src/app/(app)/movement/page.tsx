@@ -9,8 +9,8 @@ export default async function MovementPage() {
   if (profile.role === 'jefe') {
     return (
       <div>
-        <h1 className="mb-2 text-2xl font-semibold text-zinc-900">Registrar movimiento</h1>
-        <p className="text-sm text-zinc-500">Tu rol (jefe) solo tiene acceso de lectura a los reportes.</p>
+        <h1 className="mb-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Registrar movimiento</h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Tu rol (jefe) solo tiene acceso de lectura a los reportes.</p>
       </div>
     );
   }
@@ -25,7 +25,7 @@ export default async function MovementPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900">Registrar movimiento</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Registrar movimiento</h1>
       <MovementClient
         initialProducts={(products as Product[]) ?? []}
         initialCategories={(categories as Category[]) ?? []}

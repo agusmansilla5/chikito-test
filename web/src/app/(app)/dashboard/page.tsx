@@ -51,7 +51,7 @@ export default async function DashboardPage() {
     <div>
       <RealtimeRefresh />
 
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900">Panel de control</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Panel de control</h1>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Movimientos de hoy" value={movementsToday} />
@@ -64,9 +64,9 @@ export default async function DashboardPage() {
       </div>
 
       {lowStockList.length > 0 && (
-        <section className="mb-8 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
-          <h2 className="mb-2 font-semibold text-red-800">⚠ Stock bajo</h2>
-          <ul className="space-y-1 text-sm text-red-800">
+        <section className="mb-8 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-900 dark:bg-red-950/40">
+          <h2 className="mb-2 font-semibold text-red-800 dark:text-red-400">⚠ Stock bajo</h2>
+          <ul className="space-y-1 text-sm text-red-800 dark:text-red-400">
             {lowStockList.map((p) => (
               <li key={p.id}>
                 {p.name}: {p.quantity} (mínimo {p.min_stock})
@@ -78,12 +78,12 @@ export default async function DashboardPage() {
 
       <section className="mb-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-zinc-900">Stock actual</h2>
+          <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Stock actual</h2>
           <StockReportExport products={productList} />
         </div>
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-50 text-left text-zinc-500">
+            <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
               <tr>
                 <th className="px-4 py-2 font-medium">Producto</th>
                 <th className="px-4 py-2 font-medium">Rubro</th>
@@ -103,13 +103,13 @@ export default async function DashboardPage() {
               {productList.map((p) => {
                 const missing = Math.max(0, p.min_stock - p.quantity);
                 return (
-                  <tr key={p.id} className="border-t border-zinc-100">
-                    <td className="px-4 py-2 font-medium text-zinc-900">{p.name}</td>
-                    <td className="px-4 py-2 text-zinc-500">{p.categories?.name ?? 'Sin rubro'}</td>
+                  <tr key={p.id} className="border-t border-zinc-100 dark:border-zinc-800">
+                    <td className="px-4 py-2 font-medium text-zinc-900 dark:text-zinc-50">{p.name}</td>
+                    <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.categories?.name ?? 'Sin rubro'}</td>
                     <td className={`px-4 py-2 font-semibold ${missing > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {p.quantity}
                     </td>
-                    <td className="px-4 py-2 text-zinc-500">{p.min_stock}</td>
+                    <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.min_stock}</td>
                     <td className="px-4 py-2">
                       {missing > 0 ? (
                         <span className="font-semibold text-red-600">{missing}</span>
@@ -127,12 +127,12 @@ export default async function DashboardPage() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-zinc-900">Últimos movimientos</h2>
+          <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Últimos movimientos</h2>
           <ReportExport movements={movementList} />
         </div>
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-50 text-left text-zinc-500">
+            <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
               <tr>
                 <th className="px-4 py-2 font-medium">Producto</th>
                 <th className="px-4 py-2 font-medium">Tipo</th>
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
                 </tr>
               )}
               {movementList.map((m) => (
-                <tr key={m.id} className="border-t border-zinc-100">
+                <tr key={m.id} className="border-t border-zinc-100 dark:border-zinc-800">
                   <td className="px-4 py-2">{m.products?.name ?? '—'}</td>
                   <td className="px-4 py-2">
                     <span
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
                   </td>
                   <td className="px-4 py-2">{m.quantity}</td>
                   <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
-                  <td className="px-4 py-2 text-zinc-500">
+                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">
                     {new Date(m.created_at).toLocaleString('es-AR')}
                   </td>
                 </tr>

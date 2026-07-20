@@ -6,7 +6,12 @@
       "PowerShell(winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements)",
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node -v; npm -v)",
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"C:\\\\Users\\\\Gustavo\\\\Downloads\\\\proyectos claude\"; npx --yes create-expo-app@latest mobile --template blank-typescript 2>&1 | Out-String)",
-      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"C:\\\\Users\\\\Gustavo\\\\Downloads\\\\proyectos claude\\\\web\"; npm install @supabase/supabase-js @supabase/ssr 2>&1 | Out-String)"
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"C:\\\\Users\\\\Gustavo\\\\Downloads\\\\proyectos claude\\\\web\"; npm install @supabase/supabase-js @supabase/ssr 2>&1 | Out-String)",
+      "Bash(ls \"/c/Users/Gustavo/.claude/projects/C--Users-Gustavo-Desktop-PROGRAMACI-N-proyectos-claude/memory/\" 2>&1)",
+      "Bash(npm ls *)",
+      "Bash(npm install *)",
+      "Bash(ls -la \"/c/Users/Gustavo/Downloads/\" 2>&1 | grep -i \"proyectos\\\\|programaci\" ; echo \"---\"; ls -la \"/c/Users/Gustavo/Desktop/\" 2>&1 | grep -i \"programaci\")",
+      "Bash(git add *)"
     ]
   }
 }

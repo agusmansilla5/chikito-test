@@ -23,7 +23,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
   if (!audit) {
     return (
       <div>
-        <p className="text-zinc-500">No se encontró la auditoría.</p>
+        <p className="text-zinc-500 dark:text-zinc-400">No se encontró la auditoría.</p>
       </div>
     );
   }
@@ -70,10 +70,10 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
 
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
             Auditoría del {new Date(auditData.started_at).toLocaleDateString('es-AR', { dateStyle: 'long' })}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             Inicio: {new Date(auditData.started_at).toLocaleString('es-AR')}
             {auditData.ended_at && ` · Cierre: ${new Date(auditData.ended_at).toLocaleString('es-AR')}`}
             {' · '}
@@ -82,15 +82,15 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           {canClose ? (
             <NoteEditor auditId={auditData.id} initialNote={auditData.note} />
           ) : (
-            auditData.note && <p className="mt-1 text-sm italic text-zinc-500">{auditData.note}</p>
+            auditData.note && <p className="mt-1 text-sm italic text-zinc-500 dark:text-zinc-400">{auditData.note}</p>
           )}
         </div>
         <div className="flex items-center gap-3">
           <span
             className={
               isOpen
-                ? 'rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700'
-                : 'rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600'
+                ? 'rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-400'
+                : 'rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
             }
           >
             {isOpen ? 'En curso' : 'Cerrada'}
@@ -100,12 +100,12 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-medium text-zinc-900">Productos cargados ({summary.length})</h2>
+        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Productos cargados ({summary.length})</h2>
         <AuditExport audit={auditData} summary={summary} />
       </div>
-      <div className="mb-8 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+      <div className="mb-8 overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-left text-zinc-500">
+          <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
             <tr>
               <th className="px-4 py-2 font-medium">Producto</th>
               <th className="px-4 py-2 font-medium">Stock inicial</th>
@@ -125,15 +125,15 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
               </tr>
             )}
             {summary.map((s) => (
-              <tr key={s.name} className="border-t border-zinc-100">
-                <td className="px-4 py-2 font-medium text-zinc-900">{s.name}</td>
-                <td className="px-4 py-2 text-zinc-500">{s.stockInicial}</td>
+              <tr key={s.name} className="border-t border-zinc-100 dark:border-zinc-800">
+                <td className="px-4 py-2 font-medium text-zinc-900 dark:text-zinc-50">{s.name}</td>
+                <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{s.stockInicial}</td>
                 <td className="px-4 py-2 text-green-600">{s.entradas > 0 ? `+${s.entradas}` : '—'}</td>
                 <td className="px-4 py-2 text-red-600">{s.salidas > 0 ? `-${s.salidas}` : '—'}</td>
                 <td className={`px-4 py-2 font-semibold ${s.faltaPedir > 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {s.stockFinal}
                 </td>
-                <td className="px-4 py-2 text-zinc-500">{s.minStock}</td>
+                <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{s.minStock}</td>
                 <td className="px-4 py-2">
                   {s.faltaPedir > 0 ? (
                     <span className="font-semibold text-red-600">{s.faltaPedir}</span>
@@ -147,10 +147,10 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
         </table>
       </div>
 
-      <h2 className="mb-3 text-lg font-medium text-zinc-900">Detalle de movimientos</h2>
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+      <h2 className="mb-3 text-lg font-medium text-zinc-900 dark:text-zinc-50">Detalle de movimientos</h2>
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-left text-zinc-500">
+          <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
             <tr>
               <th className="px-4 py-2 font-medium">Producto</th>
               <th className="px-4 py-2 font-medium">Tipo</th>
@@ -168,14 +168,14 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
               </tr>
             )}
             {movementList.map((m) => (
-              <tr key={m.id} className="border-t border-zinc-100">
+              <tr key={m.id} className="border-t border-zinc-100 dark:border-zinc-800">
                 <td className="px-4 py-2">{m.products?.name ?? '—'}</td>
                 <td className="px-4 py-2">
                   <span
                     className={
                       m.type === 'entrada'
-                        ? 'rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700'
-                        : 'rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700'
+                        ? 'rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-400'
+                        : 'rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-400'
                     }
                   >
                     {m.type === 'entrada' ? 'Entrada' : 'Salida'}
@@ -183,7 +183,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
                 </td>
                 <td className="px-4 py-2">{m.quantity}</td>
                 <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
-                <td className="px-4 py-2 text-zinc-500">{new Date(m.created_at).toLocaleString('es-AR')}</td>
+                <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{new Date(m.created_at).toLocaleString('es-AR')}</td>
               </tr>
             ))}
           </tbody>

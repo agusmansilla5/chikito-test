@@ -161,11 +161,11 @@ export function MovementClient({
         </div>
       )}
 
-      <label className="mb-1 block text-sm font-medium text-zinc-700">Buscar producto (nombre o código de barras)</label>
+      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Buscar producto (nombre o código de barras)</label>
       <div className="mb-1 flex gap-2">
         <input
           type="text"
-          className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           placeholder="Escribí o escaneá..."
           value={query}
           onChange={(e) => {
@@ -194,7 +194,7 @@ export function MovementClient({
                 className={`rounded-full border px-3 py-1.5 text-sm ${
                   selectedProduct?.id === p.id
                     ? 'border-blue-600 bg-blue-600 text-white'
-                    : 'border-zinc-300 text-zinc-700 hover:bg-zinc-50'
+                    : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-background dark:hover:bg-zinc-800'
                 }`}
               >
                 {p.name}
@@ -211,13 +211,13 @@ export function MovementClient({
       )}
 
       {creating && (
-        <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-          <h3 className="mb-3 font-semibold text-zinc-900">Producto nuevo</h3>
+        <div className="mt-3 rounded-lg border border-zinc-200 bg-background dark:border-zinc-800 p-4">
+          <h3 className="mb-3 font-semibold text-zinc-900 dark:text-zinc-50">Producto nuevo</h3>
 
-          <label className="mb-1 block text-sm font-medium text-zinc-700">Nombre</label>
+          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
           <input
             type="text"
-            className="mb-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             placeholder="Ej: Gatorade 500ml"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
@@ -234,18 +234,18 @@ export function MovementClient({
                   onClick={() => selectProduct(p)}
                   className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm hover:bg-amber-100"
                 >
-                  <span className="font-medium text-zinc-900">{p.name}</span>
-                  <span className="text-xs text-zinc-500">Stock: {p.quantity}</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-50">{p.name}</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">Stock: {p.quantity}</span>
                 </button>
               ))}
             </div>
           )}
 
-          <label className="mb-1 block text-sm font-medium text-zinc-700">Código de barras (opcional)</label>
+          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Código de barras (opcional)</label>
           <div className="mb-3 flex gap-2">
             <input
               type="text"
-              className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               placeholder="Dejalo vacío si no tiene"
               value={newBarcode}
               onChange={(e) => setNewBarcode(e.target.value)}
@@ -258,22 +258,22 @@ export function MovementClient({
             </button>
           </div>
 
-          <label className="mb-1 block text-sm font-medium text-zinc-700">Stock mínimo (para alertas)</label>
+          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Stock mínimo (para alertas)</label>
           <input
             type="number"
-            className="mb-3 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             value={newMinStock}
             onChange={(e) => setNewMinStock(e.target.value)}
           />
 
-          <label className="mb-1 block text-sm font-medium text-zinc-700">Rubro (opcional)</label>
+          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rubro (opcional)</label>
           <div className="mb-2 flex flex-wrap gap-2">
             <button
               onClick={() => setNewCategoryId(null)}
               className={`rounded-full border px-3 py-1.5 text-sm ${
                 newCategoryId === null
                   ? 'border-blue-600 bg-blue-600 text-white'
-                  : 'border-zinc-300 text-zinc-700 hover:bg-zinc-100'
+                  : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-background dark:hover:bg-zinc-800'
               }`}
             >
               {SIN_RUBRO}
@@ -285,7 +285,7 @@ export function MovementClient({
                 className={`rounded-full border px-3 py-1.5 text-sm ${
                   newCategoryId === c.id
                     ? 'border-blue-600 bg-blue-600 text-white'
-                    : 'border-zinc-300 text-zinc-700 hover:bg-zinc-100'
+                    : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-background dark:hover:bg-zinc-800'
                 }`}
               >
                 {c.name}
@@ -298,11 +298,11 @@ export function MovementClient({
               placeholder="Nuevo rubro (ej: Con alcohol)"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
-              className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
             <button
               onClick={handleCreateCategory}
-              className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+              className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
             >
               + Crear
             </button>
@@ -313,7 +313,7 @@ export function MovementClient({
           <div className="flex gap-2">
             <button
               onClick={() => setCreating(false)}
-              className="rounded-md px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100"
+              className="rounded-md px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-background dark:hover:bg-zinc-800"
             >
               Cancelar
             </button>
@@ -329,15 +329,15 @@ export function MovementClient({
       )}
 
       {selectedProduct && !creating && (
-        <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+        <div className="mt-6 rounded-lg border border-zinc-200 bg-surface p-4 shadow-sm dark:border-zinc-800">
           <p className="mb-3 font-semibold text-blue-600">Producto seleccionado: {selectedProduct.name}</p>
 
-          <label className="mb-1 block text-sm font-medium text-zinc-700">Tipo de movimiento</label>
+          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Tipo de movimiento</label>
           <div className="mb-3 flex gap-2">
             <button
               onClick={() => setType('entrada')}
               className={`flex-1 rounded-md border py-2 text-sm font-medium ${
-                type === 'entrada' ? 'border-green-600 bg-green-600 text-white' : 'border-zinc-300 text-zinc-700'
+                type === 'entrada' ? 'border-green-600 bg-green-600 text-white' : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
               }`}
             >
               Entrada
@@ -345,25 +345,25 @@ export function MovementClient({
             <button
               onClick={() => setType('salida')}
               className={`flex-1 rounded-md border py-2 text-sm font-medium ${
-                type === 'salida' ? 'border-red-600 bg-red-600 text-white' : 'border-zinc-300 text-zinc-700'
+                type === 'salida' ? 'border-red-600 bg-red-600 text-white' : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
               }`}
             >
               Salida
             </button>
           </div>
 
-          <label className="mb-1 block text-sm font-medium text-zinc-700">Cantidad</label>
+          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Cantidad</label>
           <input
             type="number"
-            className="mb-3 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
           />
 
-          <label className="mb-1 block text-sm font-medium text-zinc-700">Nota (opcional)</label>
+          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nota (opcional)</label>
           <input
             type="text"
-            className="mb-3 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />

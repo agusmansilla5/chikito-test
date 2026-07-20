@@ -190,12 +190,12 @@ export function ProductsClient({
           placeholder="Buscar por nombre o código..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-64 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-64 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         />
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         >
           <option value="all">Todos los rubros</option>
           <option value="none">{SIN_RUBRO}</option>
@@ -215,30 +215,30 @@ export function ProductsClient({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-left text-zinc-500">
+          <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
             <tr>
               <th
-                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800"
+                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800 dark:hover:text-zinc-200"
                 onClick={() => toggleSort('name')}
               >
                 Producto{sortArrow('name')}
               </th>
               <th
-                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800"
+                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800 dark:hover:text-zinc-200"
                 onClick={() => toggleSort('barcode')}
               >
                 Código{sortArrow('barcode')}
               </th>
               <th
-                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800"
+                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800 dark:hover:text-zinc-200"
                 onClick={() => toggleSort('category')}
               >
                 Rubro{sortArrow('category')}
               </th>
               <th
-                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800"
+                className="cursor-pointer select-none px-4 py-2 font-medium hover:text-zinc-800 dark:hover:text-zinc-200"
                 onClick={() => toggleSort('quantity')}
               >
                 Stock{sortArrow('quantity')}
@@ -258,25 +258,25 @@ export function ProductsClient({
           )}
           {groups.map(([categoryName, items]) => (
             <tbody key={categoryName}>
-              <tr className="bg-zinc-100">
+              <tr className="bg-background">
                 <td
                   colSpan={canEdit ? 6 : 5}
-                  className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-zinc-500"
+                  className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
                 >
                   {categoryName}
                 </td>
               </tr>
               {items.map((p) => (
-                <tr key={p.id} className="border-t border-zinc-100">
-                  <td className="px-4 py-2 font-medium text-zinc-900">{p.name}</td>
-                  <td className="px-4 py-2 text-zinc-500">{p.barcode ?? '—'}</td>
-                  <td className="px-4 py-2 text-zinc-500">{p.categories?.name ?? SIN_RUBRO}</td>
+                <tr key={p.id} className="border-t border-zinc-100 dark:border-zinc-800">
+                  <td className="px-4 py-2 font-medium text-zinc-900 dark:text-zinc-50">{p.name}</td>
+                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.barcode ?? '—'}</td>
+                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.categories?.name ?? SIN_RUBRO}</td>
                   <td
                     className={`px-4 py-2 font-semibold ${p.quantity < p.min_stock ? 'text-red-600' : 'text-green-600'}`}
                   >
                     {p.quantity}
                   </td>
-                  <td className="px-4 py-2 text-zinc-500">{p.min_stock}</td>
+                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.min_stock}</td>
                   {canEdit && (
                     <td className="px-4 py-2">
                       <button onClick={() => openEdit(p)} className="mr-3 text-blue-600 hover:underline">
@@ -295,10 +295,10 @@ export function ProductsClient({
       </div>
 
       {categories.length > 0 && canEdit && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
           <span>Rubros:</span>
           {categories.map((c) => (
-            <span key={c.id} className="flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-1">
+            <span key={c.id} className="flex items-center gap-1 rounded-full bg-background px-2 py-1">
               {c.name}
               <button onClick={() => handleDeleteCategory(c)} className="text-zinc-400 hover:text-red-600">
                 ×
@@ -310,17 +310,17 @@ export function ProductsClient({
 
       {modalOpen && (
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold text-zinc-900">
+          <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-lg">
+            <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
               {form.id ? 'Editar producto' : 'Nuevo producto'}
             </h2>
 
-            <label className="mb-1 block text-sm font-medium text-zinc-700">Nombre</label>
+            <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="mb-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
 
             {similarProducts.length > 0 && (
@@ -334,29 +334,29 @@ export function ProductsClient({
                     onClick={() => setModalOpen(false)}
                     className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm hover:bg-amber-100"
                   >
-                    <span className="font-medium text-zinc-900">{p.name}</span>
-                    <span className="text-xs text-zinc-500">Stock: {p.quantity}</span>
+                    <span className="font-medium text-zinc-900 dark:text-zinc-50">{p.name}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">Stock: {p.quantity}</span>
                   </button>
                 ))}
               </div>
             )}
 
-            <label className="mb-1 block text-sm font-medium text-zinc-700">Código de barras (opcional)</label>
+            <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Código de barras (opcional)</label>
             <input
               type="text"
               value={form.barcode}
               onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
-              className="mb-3 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
 
             {!form.id && (
               <>
-                <label className="mb-1 block text-sm font-medium text-zinc-700">Cantidad inicial</label>
+                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Cantidad inicial</label>
                 <input
                   type="number"
                   value={form.initial_quantity}
                   onChange={(e) => setForm((f) => ({ ...f, initial_quantity: e.target.value }))}
-                  className="mb-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                 />
                 <p className="mb-3 text-xs text-zinc-400">
                   Si ponés una cantidad, queda registrada como movimiento (y se suma a la auditoría en curso, si hay
@@ -365,19 +365,19 @@ export function ProductsClient({
               </>
             )}
 
-            <label className="mb-1 block text-sm font-medium text-zinc-700">Stock mínimo</label>
+            <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Stock mínimo</label>
             <input
               type="number"
               value={form.min_stock}
               onChange={(e) => setForm((f) => ({ ...f, min_stock: e.target.value }))}
-              className="mb-3 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
 
-            <label className="mb-1 block text-sm font-medium text-zinc-700">Rubro</label>
+            <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rubro</label>
             <select
               value={form.category_id ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value || null }))}
-              className="mb-2 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-2 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             >
               <option value="">{SIN_RUBRO}</option>
               {categories.map((c) => (
@@ -392,11 +392,11 @@ export function ProductsClient({
                 placeholder="Nuevo rubro (ej: Con alcohol)"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
               <button
                 onClick={handleCreateCategory}
-                className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
               >
                 + Crear
               </button>
@@ -407,7 +407,7 @@ export function ProductsClient({
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setModalOpen(false)}
-                className="rounded-md px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100"
+                className="rounded-md px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-background dark:hover:bg-zinc-800"
               >
                 Cancelar
               </button>
