@@ -52,3 +52,34 @@ export type StockMovement = {
   products?: { name: string } | null;
   profiles?: { full_name: string } | null;
 };
+
+export type Supplier = {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+};
+
+export type PurchaseOrderStatus = 'pendiente' | 'recibida' | 'cancelada';
+
+export type PurchaseOrderItem = {
+  id: string;
+  purchase_order_id: string;
+  product_id: string;
+  quantity: number;
+  unit_cost: number | null;
+  products?: { name: string } | null;
+};
+
+export type PurchaseOrder = {
+  id: string;
+  supplier_id: string;
+  location_id: string;
+  status: PurchaseOrderStatus;
+  note: string | null;
+  created_at: string;
+  received_at: string | null;
+  suppliers?: { name: string } | null;
+  locations?: { name: string } | null;
+};
