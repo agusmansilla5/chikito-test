@@ -22,7 +22,7 @@ export function CloseAuditButton({ auditId }: { auditId: string }) {
     <button
       onClick={handleClose}
       disabled={submitting}
-      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+      className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
     >
       {submitting ? 'Cerrando...' : 'Cerrar auditoría'}
     </button>

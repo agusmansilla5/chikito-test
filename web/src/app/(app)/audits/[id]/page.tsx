@@ -64,7 +64,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <Link href="/audits" className="mb-4 inline-block text-sm text-blue-600 hover:underline">
+      <Link href="/audits" className="mb-4 inline-block text-sm text-accent hover:underline">
         ← Volver a auditorías
       </Link>
 
@@ -89,7 +89,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           <span
             className={
               isOpen
-                ? 'rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-400'
+                ? 'rounded-full bg-accent/15 px-3 py-1 text-xs font-medium text-accent'
                 : 'rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
             }
           >

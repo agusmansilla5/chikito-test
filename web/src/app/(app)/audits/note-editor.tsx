@@ -24,7 +24,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
     return (
       <button
         onClick={() => setEditing(true)}
-        className="mt-1 text-left text-sm italic text-zinc-500 hover:text-blue-600 hover:underline dark:text-zinc-400"
+        className="mt-1 text-left text-sm italic text-zinc-500 hover:text-accent hover:underline dark:text-zinc-400"
       >
         {initialNote ? initialNote : '+ Agregar nota'}
       </button>
@@ -38,7 +38,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
         onChange={(e) => setNote(e.target.value)}
         rows={2}
         placeholder="Nota sobre esta auditoría..."
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-zinc-700"
+        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
       />
       <div className="mt-2 flex gap-2">
         <button
@@ -53,7 +53,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
         <button
           onClick={handleSave}
           disabled={submitting}
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
         >
           {submitting ? 'Guardando...' : 'Guardar nota'}
         </button>

@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import {
+  contrastForeground,
   DEFAULT_COLORS,
   HEX_COLOR_REGEX,
   THEME_COLORS_KEY,
   THEME_MODE_KEY,
+  type ThemeColorOverrides,
   type ThemeColors,
   type ThemeMode,
 } from '@/lib/theme';
@@ -18,32 +20,53 @@ function expandHex(hex: string): string {
   return hex;
 }
 
-function applyMode(mode: ThemeMode) {
-  document.documentElement.setAttribute('data-theme', mode);
-  localStorage.setItem(THEME_MODE_KEY, mode);
+function readOverrides(): ThemeColorOverrides {
+  try {
+    const raw = localStorage.getItem(THEME_COLORS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
-function applyColors(colors: ThemeColors | null) {
-  if (colors) {
-    document.documentElement.style.setProperty('--background', colors.background);
-    document.documentElement.style.setProperty('--surface', colors.surface);
-    localStorage.setItem(THEME_COLORS_KEY, JSON.stringify(colors));
-  } else {
-    document.documentElement.style.removeProperty('--background');
-    document.documentElement.style.removeProperty('--surface');
+function persistOverrides(overrides: ThemeColorOverrides) {
+  if (Object.keys(overrides).length === 0) {
     localStorage.removeItem(THEME_COLORS_KEY);
+  } else {
+    localStorage.setItem(THEME_COLORS_KEY, JSON.stringify(overrides));
+  }
+}
+
+// Applies colors for whichever mode is currently active. Passing null clears the inline
+// overrides entirely so the CSS preset for the active [data-theme] takes over - this must be
+// called on every mode switch, otherwise a color chosen in one mode stays pinned via inline
+// style (which always beats the other mode's CSS preset) while text keeps following the mode.
+function applyColors(colors: ThemeColors | null) {
+  const html = document.documentElement;
+  if (colors) {
+    html.style.setProperty('--background', colors.background);
+    html.style.setProperty('--surface', colors.surface);
+    html.style.setProperty('--accent', colors.accent);
+    html.style.setProperty('--accent-foreground', contrastForeground(colors.accent));
+  } else {
+    html.style.removeProperty('--background');
+    html.style.removeProperty('--surface');
+    html.style.removeProperty('--accent');
+    html.style.removeProperty('--accent-foreground');
   }
 }
 
 const FIELDS: { key: keyof ThemeColors; label: string; hint: string }[] = [
   { key: 'background', label: 'Color de fondo', hint: 'El fondo general de la página, detrás de las casillas.' },
   { key: 'surface', label: 'Color de las casillas', hint: 'Tarjetas, tablas y recuadros de contenido.' },
+  { key: 'accent', label: 'Color de acento', hint: 'Botones, links y estados activos en toda la app.' },
 ];
 
 export function SettingsClient() {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<ThemeMode>('light');
-  const [customColors, setCustomColors] = useState<ThemeColors | null>(null);
+  const [overrides, setOverrides] = useState<ThemeColorOverrides>({});
   const [hexInputs, setHexInputs] = useState<ThemeColors>(DEFAULT_COLORS.light);
   const [hexErrors, setHexErrors] = useState<Partial<Record<keyof ThemeColors, string>>>({});
 
@@ -56,24 +79,23 @@ export function SettingsClient() {
           ? 'dark'
           : 'light';
 
-    let storedColors: ThemeColors | null = null;
-    try {
-      const raw = localStorage.getItem(THEME_COLORS_KEY);
-      storedColors = raw ? JSON.parse(raw) : null;
-    } catch {
-      storedColors = null;
-    }
+    const storedOverrides = readOverrides();
 
     setMode(initialMode);
-    setCustomColors(storedColors);
-    setHexInputs(storedColors ?? DEFAULT_COLORS[initialMode]);
+    setOverrides(storedOverrides);
+    setHexInputs(storedOverrides[initialMode] ?? DEFAULT_COLORS[initialMode]);
     setMounted(true);
   }, []);
 
   function handleModeChange(next: ThemeMode) {
     setMode(next);
-    applyMode(next);
-    if (!customColors) setHexInputs(DEFAULT_COLORS[next]);
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(THEME_MODE_KEY, next);
+
+    const nextColors = overrides[next] ?? null;
+    applyColors(nextColors);
+    setHexInputs(nextColors ?? DEFAULT_COLORS[next]);
+    setHexErrors({});
   }
 
   function handleColorChange(key: keyof ThemeColors, rawValue: string) {
@@ -86,20 +108,27 @@ export function SettingsClient() {
     }
     setHexErrors((prev) => ({ ...prev, [key]: undefined }));
 
-    const base = customColors ?? DEFAULT_COLORS[mode];
-    const next = { ...base, [key]: value };
-    setCustomColors(next);
-    applyColors(next);
+    const base = overrides[mode] ?? DEFAULT_COLORS[mode];
+    const nextColors = { ...base, [key]: value };
+    const nextOverrides = { ...overrides, [mode]: nextColors };
+    setOverrides(nextOverrides);
+    persistOverrides(nextOverrides);
+    applyColors(nextColors);
   }
 
   function handleReset() {
-    setCustomColors(null);
+    const nextOverrides = { ...overrides };
+    delete nextOverrides[mode];
+    setOverrides(nextOverrides);
+    persistOverrides(nextOverrides);
     setHexInputs(DEFAULT_COLORS[mode]);
     setHexErrors({});
     applyColors(null);
   }
 
   if (!mounted) return null;
+
+  const hasOverrideForMode = Boolean(overrides[mode]);
 
   return (
     <div className="max-w-xl">
@@ -111,7 +140,7 @@ export function SettingsClient() {
             onClick={() => handleModeChange('light')}
             className={`flex-1 rounded-md border px-4 py-2 text-sm font-medium ${
               mode === 'light'
-                ? 'border-blue-600 bg-blue-600 text-white'
+                ? 'border-accent bg-accent text-accent-foreground'
                 : 'border-zinc-300 text-zinc-700 hover:bg-background dark:border-zinc-700 dark:text-zinc-300'
             }`}
           >
@@ -121,7 +150,7 @@ export function SettingsClient() {
             onClick={() => handleModeChange('dark')}
             className={`flex-1 rounded-md border px-4 py-2 text-sm font-medium ${
               mode === 'dark'
-                ? 'border-blue-600 bg-blue-600 text-white'
+                ? 'border-accent bg-accent text-accent-foreground'
                 : 'border-zinc-300 text-zinc-700 hover:bg-background dark:border-zinc-700 dark:text-zinc-300'
             }`}
           >
@@ -134,9 +163,11 @@ export function SettingsClient() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Colores</h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Personalizá los colores en formato HEX.</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              Personalizá los colores del modo {mode === 'light' ? 'claro' : 'oscuro'} en formato HEX.
+            </p>
           </div>
-          {customColors && (
+          {hasOverrideForMode && (
             <button
               onClick={handleReset}
               className="text-sm font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400"
@@ -169,7 +200,7 @@ export function SettingsClient() {
                     value={value}
                     onChange={(e) => handleColorChange(field.key, e.target.value)}
                     placeholder="#ffffff"
-                    className="w-32 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-zinc-700"
+                    className="w-32 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-accent focus:outline-none dark:border-zinc-700 dark:text-zinc-50"
                   />
                   {error && <p className="text-xs text-red-600">{error}</p>}
                 </div>

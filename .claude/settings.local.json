@@ -11,7 +11,16 @@
       "Bash(npm ls *)",
       "Bash(npm install *)",
       "Bash(ls -la \"/c/Users/Gustavo/Downloads/\" 2>&1 | grep -i \"proyectos\\\\|programaci\" ; echo \"---\"; ls -la \"/c/Users/Gustavo/Desktop/\" 2>&1 | grep -i \"programaci\")",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('.claude/settings.local.json','utf8'\\)\\); console.log\\('valid JSON'\\)\")"
     ]
   }
 }

@@ -155,7 +155,7 @@ export function MovementClient({
   return (
     <div>
       {openAuditNote !== undefined && (
-        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm font-medium text-blue-700">
+        <div className="mb-4 rounded-md border border-accent/30 bg-accent/10 p-3 text-sm font-medium text-accent">
           📋 Auditoría en curso{openAuditNote ? `: ${openAuditNote}` : ''} — este movimiento va a quedar registrado
           en ella.
         </div>
@@ -165,7 +165,7 @@ export function MovementClient({
       <div className="mb-1 flex gap-2">
         <input
           type="text"
-          className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
           placeholder="Escribí o escaneá..."
           value={query}
           onChange={(e) => {
@@ -176,7 +176,7 @@ export function MovementClient({
         />
         <button
           onClick={() => setScannerOpen(true)}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
         >
           📷 Escanear
         </button>
@@ -193,7 +193,7 @@ export function MovementClient({
                 onClick={() => selectProduct(p)}
                 className={`rounded-full border px-3 py-1.5 text-sm ${
                   selectedProduct?.id === p.id
-                    ? 'border-blue-600 bg-blue-600 text-white'
+                    ? 'border-accent bg-accent text-accent-foreground'
                     : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-background dark:hover:bg-zinc-800'
                 }`}
               >
@@ -204,7 +204,7 @@ export function MovementClient({
           {filteredProducts.length === 0 && (
             <p className="mt-2 text-xs text-zinc-400">No se encontró ningún producto con &quot;{query}&quot;.</p>
           )}
-          <button onClick={openCreateForm} className="mt-2 text-sm font-medium text-blue-600 hover:underline">
+          <button onClick={openCreateForm} className="mt-2 text-sm font-medium text-accent hover:underline">
             + Crear producto nuevo
           </button>
         </div>
@@ -217,7 +217,7 @@ export function MovementClient({
           <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nombre</label>
           <input
             type="text"
-            className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             placeholder="Ej: Gatorade 500ml"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
@@ -245,14 +245,14 @@ export function MovementClient({
           <div className="mb-3 flex gap-2">
             <input
               type="text"
-              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
               placeholder="Dejalo vacío si no tiene"
               value={newBarcode}
               onChange={(e) => setNewBarcode(e.target.value)}
             />
             <button
               onClick={() => setScannerOpen(true)}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
             >
               📷
             </button>
@@ -261,7 +261,7 @@ export function MovementClient({
           <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Stock mínimo (para alertas)</label>
           <input
             type="number"
-            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             value={newMinStock}
             onChange={(e) => setNewMinStock(e.target.value)}
           />
@@ -272,7 +272,7 @@ export function MovementClient({
               onClick={() => setNewCategoryId(null)}
               className={`rounded-full border px-3 py-1.5 text-sm ${
                 newCategoryId === null
-                  ? 'border-blue-600 bg-blue-600 text-white'
+                  ? 'border-accent bg-accent text-accent-foreground'
                   : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-background dark:hover:bg-zinc-800'
               }`}
             >
@@ -284,7 +284,7 @@ export function MovementClient({
                 onClick={() => setNewCategoryId(c.id)}
                 className={`rounded-full border px-3 py-1.5 text-sm ${
                   newCategoryId === c.id
-                    ? 'border-blue-600 bg-blue-600 text-white'
+                    ? 'border-accent bg-accent text-accent-foreground'
                     : 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-background dark:hover:bg-zinc-800'
                 }`}
               >
@@ -298,7 +298,7 @@ export function MovementClient({
               placeholder="Nuevo rubro (ej: Con alcohol)"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
-              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             />
             <button
               onClick={handleCreateCategory}
@@ -320,7 +320,7 @@ export function MovementClient({
             <button
               onClick={handleCreateProduct}
               disabled={submitting}
-              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
             >
               {submitting ? 'Creando...' : 'Crear y usar este producto'}
             </button>
@@ -330,7 +330,7 @@ export function MovementClient({
 
       {selectedProduct && !creating && (
         <div className="mt-6 rounded-lg border border-zinc-200 bg-surface p-4 shadow-sm dark:border-zinc-800">
-          <p className="mb-3 font-semibold text-blue-600">Producto seleccionado: {selectedProduct.name}</p>
+          <p className="mb-3 font-semibold text-accent">Producto seleccionado: {selectedProduct.name}</p>
 
           <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Tipo de movimiento</label>
           <div className="mb-3 flex gap-2">
@@ -355,7 +355,7 @@ export function MovementClient({
           <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Cantidad</label>
           <input
             type="number"
-            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
           />
@@ -363,7 +363,7 @@ export function MovementClient({
           <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nota (opcional)</label>
           <input
             type="text"
-            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
@@ -373,7 +373,7 @@ export function MovementClient({
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
           >
             {submitting ? 'Guardando...' : 'Guardar'}
           </button>

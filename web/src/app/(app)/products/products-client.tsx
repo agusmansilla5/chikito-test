@@ -190,12 +190,12 @@ export function ProductsClient({
           placeholder="Buscar por nombre o código..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-64 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-64 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
         >
           <option value="all">Todos los rubros</option>
           <option value="none">{SIN_RUBRO}</option>
@@ -208,7 +208,7 @@ export function ProductsClient({
         {canEdit && (
           <button
             onClick={openCreate}
-            className="ml-auto rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="ml-auto rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
           >
             + Nuevo producto
           </button>
@@ -279,7 +279,7 @@ export function ProductsClient({
                   <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.min_stock}</td>
                   {canEdit && (
                     <td className="px-4 py-2">
-                      <button onClick={() => openEdit(p)} className="mr-3 text-blue-600 hover:underline">
+                      <button onClick={() => openEdit(p)} className="mr-3 text-accent hover:underline">
                         Editar
                       </button>
                       <button onClick={() => handleDelete(p)} className="text-red-600 hover:underline">
@@ -320,7 +320,7 @@ export function ProductsClient({
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             />
 
             {similarProducts.length > 0 && (
@@ -346,7 +346,7 @@ export function ProductsClient({
               type="text"
               value={form.barcode}
               onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
-              className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             />
 
             {!form.id && (
@@ -356,7 +356,7 @@ export function ProductsClient({
                   type="number"
                   value={form.initial_quantity}
                   onChange={(e) => setForm((f) => ({ ...f, initial_quantity: e.target.value }))}
-                  className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
                 />
                 <p className="mb-3 text-xs text-zinc-400">
                   Si ponés una cantidad, queda registrada como movimiento (y se suma a la auditoría en curso, si hay
@@ -370,14 +370,14 @@ export function ProductsClient({
               type="number"
               value={form.min_stock}
               onChange={(e) => setForm((f) => ({ ...f, min_stock: e.target.value }))}
-              className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             />
 
             <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rubro</label>
             <select
               value={form.category_id ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value || null }))}
-              className="mb-2 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mb-2 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             >
               <option value="">{SIN_RUBRO}</option>
               {categories.map((c) => (
@@ -392,7 +392,7 @@ export function ProductsClient({
                 placeholder="Nuevo rubro (ej: Con alcohol)"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
               />
               <button
                 onClick={handleCreateCategory}
@@ -414,7 +414,7 @@ export function ProductsClient({
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
               >
                 {submitting ? 'Guardando...' : form.id ? 'Guardar cambios' : 'Crear producto'}
               </button>

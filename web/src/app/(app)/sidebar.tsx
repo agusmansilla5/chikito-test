@@ -86,7 +86,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
               href={item.href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/50'
+                  ? 'bg-accent/10 text-accent'
                   : 'text-zinc-600 hover:bg-background hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
               }`}
             >
