@@ -34,6 +34,7 @@ const EMPTY_FORM: FormState = {
   sale_price: '',
 };
 const SIN_RUBRO = 'Sin rubro';
+const PAGE_SIZE = 30;
 
 function compareProducts(a: Product, b: Product, key: SortKey, dir: 'asc' | 'desc') {
   let cmp = 0;
@@ -58,6 +59,7 @@ export function ProductsClient({
   const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -79,7 +81,7 @@ export function ProductsClient({
     });
   }, [products, search, categoryFilter]);
 
-  const groups = useMemo(() => {
+  const allGroups = useMemo(() => {
     const itemSortKey: SortKey = sortKey === 'category' ? 'name' : sortKey;
     const sorted = [...filtered].sort((a, b) => compareProducts(a, b, itemSortKey, sortKey === 'category' ? 'asc' : sortDir));
     const map = new Map<string, Product[]>();
@@ -97,7 +99,26 @@ export function ProductsClient({
     return entries;
   }, [filtered, sortKey, sortDir]);
 
+  const flatSorted = useMemo(() => allGroups.flatMap(([, items]) => items), [allGroups]);
+  const totalPages = Math.max(1, Math.ceil(flatSorted.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageSlice = useMemo(
+    () => flatSorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [flatSorted, currentPage]
+  );
+  const groups = useMemo(() => {
+    const result: [string, Product[]][] = [];
+    for (const p of pageSlice) {
+      const key = p.categories?.name ?? SIN_RUBRO;
+      const last = result[result.length - 1];
+      if (last && last[0] === key) last[1].push(p);
+      else result.push([key, [p]]);
+    }
+    return result;
+  }, [pageSlice]);
+
   function toggleSort(key: SortKey) {
+    setPage(1);
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
@@ -202,12 +223,18 @@ export function ProductsClient({
           type="text"
           placeholder="Buscar por nombre o código..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="w-64 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
         <select
           value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
+          onChange={(e) => {
+            setCategoryFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
         >
           <option value="all">Todos los rubros</option>
@@ -310,6 +337,28 @@ export function ProductsClient({
           ))}
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between text-sm text-foreground">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+            className="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-background disabled:pointer-events-none disabled:opacity-40 dark:border-zinc-700"
+          >
+            ‹ Anterior
+          </button>
+          <span>
+            Página {currentPage} de {totalPages} ({flatSorted.length} productos)
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+            className="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-background disabled:pointer-events-none disabled:opacity-40 dark:border-zinc-700"
+          >
+            Siguiente ›
+          </button>
+        </div>
+      )}
 
       {categories.length > 0 && canEdit && (
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-foreground">

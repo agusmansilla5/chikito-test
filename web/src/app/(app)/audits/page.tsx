@@ -8,27 +8,41 @@ import { StartAuditForm } from './audits-client';
 
 type AuditWithLocation = Audit & { locations?: { name: string } | null };
 
-export default async function AuditsPage() {
+const PAGE_SIZE = 20;
+
+export default async function AuditsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const profile = await requireProfile();
   const supabase = await createClient();
   const locations = await getLocations();
   const locationValue = await getSelectedLocationValue(locations);
   const isAllLocations = locationValue === ALL_LOCATIONS_VALUE;
 
-  const { data: audits } = isAllLocations
+  const { data: audits, count } = isAllLocations
     ? await supabase
         .from('audits')
-        .select('*, profiles(full_name), locations(name)')
+        .select('*, profiles(full_name), locations(name)', { count: 'exact' })
         .order('started_at', { ascending: false })
+        .range(from, to)
     : locationValue
       ? await supabase
           .from('audits')
-          .select('*, profiles(full_name)')
+          .select('*, profiles(full_name)', { count: 'exact' })
           .eq('location_id', locationValue)
           .order('started_at', { ascending: false })
-      : { data: [] };
+          .range(from, to)
+      : { data: [], count: 0 };
 
   const auditList = (audits as AuditWithLocation[]) ?? [];
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
   const canStart = (profile.role === 'admin' || profile.role === 'auditor') && !isAllLocations;
 
   return (
@@ -100,6 +114,32 @@ export default async function AuditsPage() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between text-sm text-foreground">
+          <Link
+            href={`/audits?page=${page - 1}`}
+            aria-disabled={page <= 1}
+            className={`rounded-md border border-zinc-300 px-3 py-1.5 font-medium dark:border-zinc-700 ${
+              page <= 1 ? 'pointer-events-none opacity-40' : 'hover:bg-background'
+            }`}
+          >
+            ‹ Anterior
+          </Link>
+          <span>
+            Página {page} de {totalPages}
+          </span>
+          <Link
+            href={`/audits?page=${page + 1}`}
+            aria-disabled={page >= totalPages}
+            className={`rounded-md border border-zinc-300 px-3 py-1.5 font-medium dark:border-zinc-700 ${
+              page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:bg-background'
+            }`}
+          >
+            Siguiente ›
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
