@@ -29,7 +29,7 @@ const looksLikeBarcode = (text: string) => /^\d{6,}$/.test(text.trim());
 export default function AddMovementScreen({ navigation }: Props) {
   const { session } = useAuth();
   const { colors } = useTheme();
-  const { locations, selectedLocationId } = useLocation();
+  const { locations, realLocationId, isAllLocations } = useLocation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -53,7 +53,7 @@ export default function AddMovementScreen({ navigation }: Props) {
   const [activeAudit, setActiveAudit] = useState<Audit | null>(null);
 
   useEffect(() => {
-    if (!selectedLocationId) return;
+    if (!realLocationId) return;
     loadProducts();
     supabase
       .from('categories')
@@ -63,21 +63,21 @@ export default function AddMovementScreen({ navigation }: Props) {
     supabase
       .from('audits')
       .select('*')
-      .eq('location_id', selectedLocationId)
+      .eq('location_id', realLocationId)
       .is('ended_at', null)
       .order('started_at', { ascending: false })
       .limit(1)
       .maybeSingle()
       .then(({ data }) => setActiveAudit(data as Audit | null));
-  }, [selectedLocationId]);
+  }, [realLocationId]);
 
   async function loadProducts() {
-    if (!selectedLocationId) return;
+    if (!realLocationId) return;
     const { data } = await supabase
       .from('products')
       .select('*, categories(name), product_stock!inner(quantity, min_stock)')
       .eq('active', true)
-      .eq('product_stock.location_id', selectedLocationId)
+      .eq('product_stock.location_id', realLocationId)
       .order('name');
     const rows = (data as (Product & { product_stock: { quantity: number; min_stock: number }[] })[]) ?? [];
     setProducts(
@@ -200,7 +200,7 @@ export default function AddMovementScreen({ navigation }: Props) {
           product_id: data.id,
           location_id: l.id,
           quantity: 0,
-          min_stock: l.id === selectedLocationId ? minStock : 0,
+          min_stock: l.id === realLocationId ? minStock : 0,
         }))
       );
     }
@@ -224,7 +224,7 @@ export default function AddMovementScreen({ navigation }: Props) {
       setError('Ingresá una cantidad válida.');
       return;
     }
-    if (!session || !selectedLocationId) return;
+    if (!session || !realLocationId) return;
 
     setSubmitting(true);
     const { error: insertError } = await supabase.from('stock_movements').insert({
@@ -233,7 +233,7 @@ export default function AddMovementScreen({ navigation }: Props) {
       quantity: qty,
       note: note.trim() || null,
       created_by: session.user.id,
-      location_id: selectedLocationId,
+      location_id: realLocationId,
       audit_id: activeAudit?.id ?? null,
     });
     setSubmitting(false);
@@ -243,6 +243,15 @@ export default function AddMovementScreen({ navigation }: Props) {
       return;
     }
     navigation.goBack();
+  }
+
+  if (isAllLocations) {
+    return (
+      <View style={[styles.container, { padding: 16 }]}>
+        <Text style={styles.title}>Registrar movimiento</Text>
+        <Text style={styles.hint}>Estás en la vista general. Elegí un local arriba para registrar un movimiento ahí.</Text>
+      </View>
+    );
   }
 
   return (

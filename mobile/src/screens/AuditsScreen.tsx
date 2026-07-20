@@ -12,29 +12,38 @@ import type { Audit } from '../types';
 import type { RootStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Audits'>;
+type AuditWithLocation = Audit & { locations?: { name: string } | null };
 
 export default function AuditsScreen({ navigation }: Props) {
   const { session, profile } = useAuth();
   const { colors, card } = useTheme();
-  const { selectedLocationId } = useLocation();
+  const { realLocationId, isAllLocations } = useLocation();
   const styles = useMemo(() => createStyles(colors, card), [colors, card]);
-  const [audits, setAudits] = useState<Audit[]>([]);
+  const [audits, setAudits] = useState<AuditWithLocation[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canStart = profile?.role === 'admin' || profile?.role === 'auditor';
+  const canStart = (profile?.role === 'admin' || profile?.role === 'auditor') && !isAllLocations;
 
   const loadAudits = useCallback(async () => {
-    if (!selectedLocationId) return;
+    if (isAllLocations) {
+      const { data } = await supabase
+        .from('audits')
+        .select('*, profiles(full_name), locations(name)')
+        .order('started_at', { ascending: false });
+      setAudits((data as AuditWithLocation[]) ?? []);
+      return;
+    }
+    if (!realLocationId) return;
     const { data } = await supabase
       .from('audits')
       .select('*, profiles(full_name)')
-      .eq('location_id', selectedLocationId)
+      .eq('location_id', realLocationId)
       .order('started_at', { ascending: false });
     setAudits((data as Audit[]) ?? []);
-  }, [selectedLocationId]);
+  }, [realLocationId, isAllLocations]);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,13 +58,13 @@ export default function AuditsScreen({ navigation }: Props) {
   }
 
   async function handleStartAudit() {
-    if (!session || !selectedLocationId) return;
+    if (!session || !realLocationId) return;
     setError(null);
     setSubmitting(true);
     const { error: insertError } = await supabase.from('audits').insert({
       started_by: session.user.id,
       note: note.trim() || null,
-      location_id: selectedLocationId,
+      location_id: realLocationId,
     });
     setSubmitting(false);
     if (insertError) {
@@ -106,6 +115,7 @@ export default function AuditsScreen({ navigation }: Props) {
           <View style={styles.row}>
             <View style={styles.rowHeader}>
               <Text style={styles.date}>{formatDate(item.started_at)}</Text>
+              {isAllLocations && <Text style={styles.meta}>· {item.locations?.name ?? '—'}</Text>}
               <View style={[styles.statusBadge, isOpen ? styles.statusOpen : styles.statusClosed]}>
                 <Text style={isOpen ? styles.statusOpenText : styles.statusClosedText}>
                   {isOpen ? 'En curso' : 'Cerrada'}

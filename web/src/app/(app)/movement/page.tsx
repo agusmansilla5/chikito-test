@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
-import { getLocations, getSelectedLocationId } from '@/lib/location';
+import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
 import type { Product, Category } from '@/lib/types';
 import { MovementClient } from './movement-client';
 
@@ -18,9 +18,22 @@ export default async function MovementPage() {
     );
   }
 
-  const supabase = await createClient();
   const locations = await getLocations();
-  const locationId = await getSelectedLocationId(locations);
+  const locationValue = await getSelectedLocationValue(locations);
+
+  if (locationValue === ALL_LOCATIONS_VALUE) {
+    return (
+      <div>
+        <h1 className="mb-2 text-2xl font-semibold text-foreground">Registrar movimiento</h1>
+        <p className="text-sm text-foreground">
+          Estás en la vista general. Elegí un local en el menú para registrar un movimiento ahí.
+        </p>
+      </div>
+    );
+  }
+
+  const supabase = await createClient();
+  const locationId = locationValue;
 
   const [{ data: productsRaw }, { data: categories }, { data: openAudit }] = await Promise.all([
     locationId

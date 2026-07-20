@@ -26,7 +26,7 @@ function compareProducts(a: Product, b: Product, key: SortKey, dir: 'asc' | 'des
 export default function ProductListScreen({ navigation }: Props) {
   const { profile } = useAuth();
   const { colors, card } = useTheme();
-  const { selectedLocationId } = useLocation();
+  const { realLocationId, isAllLocations } = useLocation();
   const styles = useMemo(() => createStyles(colors, card), [colors, card]);
   const [products, setProducts] = useState<Product[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -34,22 +34,43 @@ export default function ProductListScreen({ navigation }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const canRegisterMovements = profile?.role === 'admin' || profile?.role === 'auditor';
-  const canDelete = profile?.role === 'admin';
+  const canRegisterMovements = (profile?.role === 'admin' || profile?.role === 'auditor') && !isAllLocations;
+  const canDelete = profile?.role === 'admin' && !isAllLocations;
 
   const loadProducts = useCallback(async () => {
-    if (!selectedLocationId) return;
+    if (isAllLocations) {
+      const [{ data: productsRaw }, { data: stockRows }] = await Promise.all([
+        supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
+        supabase.from('product_stock').select('product_id, quantity, min_stock'),
+      ]);
+      const stockByProduct = new Map<string, { quantity: number; min_stock: number }>();
+      for (const row of (stockRows as { product_id: string; quantity: number; min_stock: number }[]) ?? []) {
+        const acc = stockByProduct.get(row.product_id) ?? { quantity: 0, min_stock: 0 };
+        acc.quantity += row.quantity;
+        acc.min_stock += row.min_stock;
+        stockByProduct.set(row.product_id, acc);
+      }
+      setProducts(
+        ((productsRaw as Product[]) ?? []).map((p) => ({
+          ...p,
+          quantity: stockByProduct.get(p.id)?.quantity ?? 0,
+          min_stock: stockByProduct.get(p.id)?.min_stock ?? 0,
+        }))
+      );
+      return;
+    }
+    if (!realLocationId) return;
     const { data } = await supabase
       .from('products')
       .select('*, categories(name), product_stock!inner(quantity, min_stock)')
       .eq('active', true)
-      .eq('product_stock.location_id', selectedLocationId)
+      .eq('product_stock.location_id', realLocationId)
       .order('name');
     const rows = (data as (Product & { product_stock: { quantity: number; min_stock: number }[] })[]) ?? [];
     setProducts(
       rows.map((p) => ({ ...p, quantity: p.product_stock[0]?.quantity ?? 0, min_stock: p.product_stock[0]?.min_stock ?? 0 }))
     );
-  }, [selectedLocationId]);
+  }, [realLocationId, isAllLocations]);
 
   useFocusEffect(
     useCallback(() => {

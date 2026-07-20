@@ -79,11 +79,11 @@ const NAV_ITEMS = [
 export function Sidebar({
   profile,
   locations,
-  selectedLocationId,
+  selectedLocationValue,
 }: {
   profile: Profile;
   locations: Location[];
-  selectedLocationId: string | null;
+  selectedLocationValue: string | null;
 }) {
   const pathname = usePathname();
   const items = NAV_ITEMS.filter((item) => !item.adminOnly || profile.role === 'admin');
@@ -100,7 +100,7 @@ export function Sidebar({
       </div>
 
       <div className="border-b border-zinc-200 p-3 dark:border-zinc-800">
-        <LocationSwitcher locations={locations} selectedId={selectedLocationId} />
+        <LocationSwitcher locations={locations} selectedValue={selectedLocationValue} />
       </div>
 
       <nav className="flex-1 space-y-1 p-3">

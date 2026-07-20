@@ -26,7 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AddProduct'>;
 export default function AddProductScreen({ navigation, route }: Props) {
   const { profile } = useAuth();
   const { colors } = useTheme();
-  const { selectedLocationId } = useLocation();
+  const { realLocationId } = useLocation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const productId = route.params?.productId ?? null;
 
@@ -51,7 +51,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     loadCategories();
-    if (!productId || !selectedLocationId) {
+    if (!productId || !realLocationId) {
       setLoading(false);
       return;
     }
@@ -61,7 +61,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
         .from('product_stock')
         .select('min_stock')
         .eq('product_id', productId)
-        .eq('location_id', selectedLocationId)
+        .eq('location_id', realLocationId)
         .maybeSingle(),
     ]).then(([{ data }, { data: stock }]) => {
       if (data) {
@@ -74,7 +74,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
       }
       setLoading(false);
     });
-  }, [productId, selectedLocationId]);
+  }, [productId, realLocationId]);
 
   async function loadCategories() {
     const { data } = await supabase.from('categories').select('*').order('name');
@@ -137,11 +137,11 @@ export default function AddProductScreen({ navigation, route }: Props) {
       })
       .eq('id', productId);
 
-    if (!dbError && selectedLocationId) {
+    if (!dbError && realLocationId) {
       await supabase
         .from('product_stock')
         .upsert(
-          { product_id: productId, location_id: selectedLocationId, min_stock: Number(minStock) || 0 },
+          { product_id: productId, location_id: realLocationId, min_stock: Number(minStock) || 0 },
           { onConflict: 'product_id,location_id' }
         );
     }

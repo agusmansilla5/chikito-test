@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { getLocations, getSelectedLocationId } from '@/lib/location';
+import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
 import { formatDateTime, formatWeekday } from '@/lib/date';
 import type { Product, StockMovement } from '@/lib/types';
 import { StatCard } from '../stat-card';
@@ -9,47 +9,82 @@ import { StockReportExport } from './stock-report-export';
 import { MovementsChart } from './movements-chart';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
+type StockRow = { product_id: string; quantity: number; min_stock: number };
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const locations = await getLocations();
-  const locationId = await getSelectedLocationId(locations);
+  const locationValue = await getSelectedLocationValue(locations);
+  const isAllLocations = locationValue === ALL_LOCATIONS_VALUE;
 
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   sevenDaysAgo.setHours(0, 0, 0, 0);
 
-  const [{ data: movements }, { data: lowStock }, { data: productsRaw }, { data: weekMovements }] =
-    locationId
-      ? await Promise.all([
-          supabase
-            .from('stock_movements')
-            .select('*, products(name), profiles(full_name)')
-            .eq('location_id', locationId)
-            .order('created_at', { ascending: false })
-            .limit(50),
-          supabase.from('low_stock_products').select('*').eq('location_id', locationId),
-          supabase
-            .from('products')
-            .select('*, categories(name), product_stock!inner(quantity, min_stock)')
-            .eq('active', true)
-            .eq('product_stock.location_id', locationId)
-            .order('name'),
-          supabase
-            .from('stock_movements')
-            .select('type, quantity, created_at')
-            .eq('location_id', locationId)
-            .gte('created_at', sevenDaysAgo.toISOString()),
-        ])
-      : [{ data: [] }, { data: [] }, { data: [] as ProductWithStock[] }, { data: [] }];
+  let movementList: StockMovement[] = [];
+  let productList: Product[] = [];
+  let lowStockList: Product[] = [];
+  let weekMovements: { type: string; quantity: number; created_at: string }[] = [];
 
-  const movementList = (movements as StockMovement[]) ?? [];
-  const lowStockList = (lowStock as Product[]) ?? [];
-  const productList: Product[] = ((productsRaw as ProductWithStock[]) ?? []).map((p) => ({
-    ...p,
-    quantity: p.product_stock[0]?.quantity ?? 0,
-    min_stock: p.product_stock[0]?.min_stock ?? 0,
-  }));
+  if (isAllLocations) {
+    const [{ data: movements }, { data: productsRaw }, { data: stockRows }, { data: weekData }] = await Promise.all([
+      supabase
+        .from('stock_movements')
+        .select('*, products(name), profiles(full_name)')
+        .order('created_at', { ascending: false })
+        .limit(50),
+      supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
+      supabase.from('product_stock').select('product_id, quantity, min_stock'),
+      supabase.from('stock_movements').select('type, quantity, created_at').gte('created_at', sevenDaysAgo.toISOString()),
+    ]);
+
+    movementList = (movements as StockMovement[]) ?? [];
+    weekMovements = weekData ?? [];
+
+    const stockByProduct = new Map<string, { quantity: number; min_stock: number }>();
+    for (const row of (stockRows as StockRow[]) ?? []) {
+      const acc = stockByProduct.get(row.product_id) ?? { quantity: 0, min_stock: 0 };
+      acc.quantity += row.quantity;
+      acc.min_stock += row.min_stock;
+      stockByProduct.set(row.product_id, acc);
+    }
+    productList = ((productsRaw as Product[]) ?? []).map((p) => ({
+      ...p,
+      quantity: stockByProduct.get(p.id)?.quantity ?? 0,
+      min_stock: stockByProduct.get(p.id)?.min_stock ?? 0,
+    }));
+    lowStockList = productList.filter((p) => p.quantity < p.min_stock);
+  } else if (locationValue) {
+    const [{ data: movements }, { data: lowStock }, { data: productsRaw }, { data: weekData }] = await Promise.all([
+      supabase
+        .from('stock_movements')
+        .select('*, products(name), profiles(full_name)')
+        .eq('location_id', locationValue)
+        .order('created_at', { ascending: false })
+        .limit(50),
+      supabase.from('low_stock_products').select('*').eq('location_id', locationValue),
+      supabase
+        .from('products')
+        .select('*, categories(name), product_stock!inner(quantity, min_stock)')
+        .eq('active', true)
+        .eq('product_stock.location_id', locationValue)
+        .order('name'),
+      supabase
+        .from('stock_movements')
+        .select('type, quantity, created_at')
+        .eq('location_id', locationValue)
+        .gte('created_at', sevenDaysAgo.toISOString()),
+    ]);
+
+    movementList = (movements as StockMovement[]) ?? [];
+    lowStockList = (lowStock as Product[]) ?? [];
+    productList = ((productsRaw as ProductWithStock[]) ?? []).map((p) => ({
+      ...p,
+      quantity: p.product_stock[0]?.quantity ?? 0,
+      min_stock: p.product_stock[0]?.min_stock ?? 0,
+    }));
+    weekMovements = weekData ?? [];
+  }
 
   const todayKey = new Date().toDateString();
   const movementsToday = movementList.filter((m) => new Date(m.created_at).toDateString() === todayKey).length;
@@ -65,7 +100,7 @@ export default async function DashboardPage() {
     const day = new Date(sevenDaysAgo);
     day.setDate(day.getDate() + i);
     const dayKey = day.toDateString();
-    const dayMovements = (weekMovements ?? []).filter((m) => new Date(m.created_at).toDateString() === dayKey);
+    const dayMovements = weekMovements.filter((m) => new Date(m.created_at).toDateString() === dayKey);
     return {
       label: formatWeekday(day),
       entradas: dayMovements.filter((m) => m.type === 'entrada').reduce((s, m) => s + m.quantity, 0),
@@ -78,6 +113,9 @@ export default async function DashboardPage() {
       <RealtimeRefresh />
 
       <h1 className="mb-6 text-2xl font-semibold text-foreground">Panel de control</h1>
+      {isAllLocations && (
+        <p className="mb-4 text-sm text-foreground">Vista general: suma el stock y los movimientos de todos los locales.</p>
+      )}
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Movimientos de hoy" value={movementsToday} />
