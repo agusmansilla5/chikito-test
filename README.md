@@ -60,7 +60,8 @@ Abrí [http://localhost:3000](http://localhost:3000).
 1. Subí este proyecto a GitHub.
 2. En [vercel.com](https://vercel.com), importá el repo y seleccioná la carpeta `web` como **Root Directory**.
 3. Cargá las variables de entorno `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en la configuración del proyecto en Vercel.
-4. Deploy.
+4. (Opcional, para gestionar usuarios desde `/users`) Cargá también `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Settings → API → service_role). **Nunca** le pongas el prefijo `NEXT_PUBLIC_` a esta variable: si lo hace, queda expuesta en el navegador.
+5. Deploy.
 
 La app móvil **no** se despliega en Vercel — corre en los celulares vía Expo Go (para pruebas) o como build instalable con EAS Build (para producción, más adelante).
 
