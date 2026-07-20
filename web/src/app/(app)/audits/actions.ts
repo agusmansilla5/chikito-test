@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { getSelectedLocationId } from '@/lib/location';
 
 export async function startAudit(note: string | null) {
   const supabase = await createClient();
@@ -10,7 +11,10 @@ export async function startAudit(note: string | null) {
   } = await supabase.auth.getUser();
   if (!user) return { error: 'No autenticado.' };
 
-  const { error } = await supabase.from('audits').insert({ started_by: user.id, note });
+  const locationId = await getSelectedLocationId();
+  if (!locationId) return { error: 'No hay ningún local configurado.' };
+
+  const { error } = await supabase.from('audits').insert({ started_by: user.id, note, location_id: locationId });
   if (error) return { error: error.message };
   revalidatePath('/audits');
   return { error: null };

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { Profile } from '@/lib/types';
+import type { Location, Profile } from '@/lib/types';
 import { LogoutButton } from './logout-button';
+import { LocationSwitcher } from './location-switcher';
 
 const NAV_ITEMS = [
   {
@@ -61,10 +62,31 @@ const NAV_ITEMS = [
       />
     ),
   },
+  {
+    href: '/locations',
+    label: 'Ubicaciones',
+    adminOnly: true,
+    icon: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+      />
+    ),
+  },
 ];
 
-export function Sidebar({ profile }: { profile: Profile }) {
+export function Sidebar({
+  profile,
+  locations,
+  selectedLocationId,
+}: {
+  profile: Profile;
+  locations: Location[];
+  selectedLocationId: string | null;
+}) {
   const pathname = usePathname();
+  const items = NAV_ITEMS.filter((item) => !item.adminOnly || profile.role === 'admin');
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-zinc-200 bg-surface dark:border-zinc-800">
@@ -77,8 +99,12 @@ export function Sidebar({ profile }: { profile: Profile }) {
         </div>
       </div>
 
+      <div className="border-b border-zinc-200 p-3 dark:border-zinc-800">
+        <LocationSwitcher locations={locations} selectedId={selectedLocationId} />
+      </div>
+
       <nav className="flex-1 space-y-1 p-3">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const isActive = pathname?.startsWith(item.href);
           return (
             <Link

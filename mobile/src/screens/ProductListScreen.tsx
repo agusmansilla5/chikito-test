@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
 import type { ThemeColors, ThemeCard } from '../theme';
 import type { Product } from '../types';
 import type { RootStackParamList } from '../navigation/types';
@@ -25,6 +26,7 @@ function compareProducts(a: Product, b: Product, key: SortKey, dir: 'asc' | 'des
 export default function ProductListScreen({ navigation }: Props) {
   const { profile } = useAuth();
   const { colors, card } = useTheme();
+  const { selectedLocationId } = useLocation();
   const styles = useMemo(() => createStyles(colors, card), [colors, card]);
   const [products, setProducts] = useState<Product[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,13 +38,18 @@ export default function ProductListScreen({ navigation }: Props) {
   const canDelete = profile?.role === 'admin';
 
   const loadProducts = useCallback(async () => {
+    if (!selectedLocationId) return;
     const { data } = await supabase
       .from('products')
-      .select('*, categories(name)')
+      .select('*, categories(name), product_stock!inner(quantity, min_stock)')
       .eq('active', true)
+      .eq('product_stock.location_id', selectedLocationId)
       .order('name');
-    setProducts((data as Product[]) ?? []);
-  }, []);
+    const rows = (data as (Product & { product_stock: { quantity: number; min_stock: number }[] })[]) ?? [];
+    setProducts(
+      rows.map((p) => ({ ...p, quantity: p.product_stock[0]?.quantity ?? 0, min_stock: p.product_stock[0]?.min_stock ?? 0 }))
+    );
+  }, [selectedLocationId]);
 
   useFocusEffect(
     useCallback(() => {

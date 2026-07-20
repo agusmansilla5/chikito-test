@@ -12,9 +12,7 @@ import type { RootStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AuditDetail'>;
 
-type MovementWithStock = StockMovement & {
-  products: { name: string; quantity: number; min_stock: number } | null;
-};
+type StockRow = { quantity: number; min_stock: number };
 
 export default function AuditDetailScreen({ route }: Props) {
   const { auditId } = route.params;
@@ -22,7 +20,8 @@ export default function AuditDetailScreen({ route }: Props) {
   const { colors, card } = useTheme();
   const styles = useMemo(() => createStyles(colors, card), [colors, card]);
   const [audit, setAudit] = useState<Audit | null>(null);
-  const [movements, setMovements] = useState<MovementWithStock[]>([]);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [stockByProduct, setStockByProduct] = useState<Map<string, StockRow>>(new Map());
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
@@ -33,17 +32,33 @@ export default function AuditDetailScreen({ route }: Props) {
   const canClose = profile?.role === 'admin' || profile?.role === 'auditor';
 
   const load = useCallback(async () => {
-    const [{ data: auditData }, { data: movementsData }] = await Promise.all([
-      supabase.from('audits').select('*, profiles(full_name)').eq('id', auditId).single(),
-      supabase
-        .from('stock_movements')
-        .select('*, products(name, quantity, min_stock), profiles(full_name)')
-        .eq('audit_id', auditId)
-        .order('created_at', { ascending: false }),
-    ]);
+    const { data: auditData } = await supabase
+      .from('audits')
+      .select('*, profiles(full_name)')
+      .eq('id', auditId)
+      .single();
     setAudit(auditData as Audit);
     setNoteDraft((auditData as Audit)?.note ?? '');
-    setMovements((movementsData as MovementWithStock[]) ?? []);
+
+    const { data: movementsData } = await supabase
+      .from('stock_movements')
+      .select('*, products(name), profiles(full_name)')
+      .eq('audit_id', auditId)
+      .order('created_at', { ascending: false });
+    const movementList = (movementsData as StockMovement[]) ?? [];
+    setMovements(movementList);
+
+    const productIds = Array.from(new Set(movementList.map((m) => m.product_id)));
+    if (auditData && productIds.length > 0) {
+      const { data: stockRows } = await supabase
+        .from('product_stock')
+        .select('product_id, quantity, min_stock')
+        .eq('location_id', (auditData as Audit).location_id)
+        .in('product_id', productIds);
+      setStockByProduct(new Map((stockRows ?? []).map((r) => [r.product_id, r])));
+    } else {
+      setStockByProduct(new Map());
+    }
     setLoading(false);
   }, [auditId]);
 
@@ -60,12 +75,13 @@ export default function AuditDetailScreen({ route }: Props) {
     >();
     for (const m of movements) {
       if (!map.has(m.product_id)) {
+        const stock = stockByProduct.get(m.product_id);
         map.set(m.product_id, {
           name: m.products?.name ?? 'Producto',
           entradas: 0,
           salidas: 0,
-          stockFinal: m.products?.quantity ?? 0,
-          minStock: m.products?.min_stock ?? 0,
+          stockFinal: stock?.quantity ?? 0,
+          minStock: stock?.min_stock ?? 0,
         });
       }
       const row = map.get(m.product_id)!;
@@ -79,7 +95,7 @@ export default function AuditDetailScreen({ route }: Props) {
         faltaPedir: Math.max(0, s.minStock - s.stockFinal),
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [movements]);
+  }, [movements, stockByProduct]);
 
   async function handleClose() {
     Alert.alert('Cerrar auditoría', '¿Confirmás que terminaste de cargar el conteo?', [

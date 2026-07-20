@@ -14,6 +14,7 @@ import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'ex
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
 import type { ThemeColors } from '../theme';
 import { BARCODE_TYPES } from '../constants';
 import type { Category } from '../types';
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AddProduct'>;
 export default function AddProductScreen({ navigation, route }: Props) {
   const { profile } = useAuth();
   const { colors } = useTheme();
+  const { selectedLocationId } = useLocation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const productId = route.params?.productId ?? null;
 
@@ -49,27 +51,30 @@ export default function AddProductScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     loadCategories();
-    if (!productId) {
+    if (!productId || !selectedLocationId) {
       setLoading(false);
       return;
     }
-    supabase
-      .from('products')
-      .select('*')
-      .eq('id', productId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setName(data.name);
-          setBarcode(data.barcode ?? '');
-          setMinStock(String(data.min_stock ?? ''));
-          setCostPrice(data.cost_price != null ? String(data.cost_price) : '');
-          setSalePrice(data.sale_price != null ? String(data.sale_price) : '');
-          setCategoryId(data.category_id);
-        }
-        setLoading(false);
-      });
-  }, [productId]);
+    Promise.all([
+      supabase.from('products').select('*').eq('id', productId).single(),
+      supabase
+        .from('product_stock')
+        .select('min_stock')
+        .eq('product_id', productId)
+        .eq('location_id', selectedLocationId)
+        .maybeSingle(),
+    ]).then(([{ data }, { data: stock }]) => {
+      if (data) {
+        setName(data.name);
+        setBarcode(data.barcode ?? '');
+        setMinStock(String(stock?.min_stock ?? 0));
+        setCostPrice(data.cost_price != null ? String(data.cost_price) : '');
+        setSalePrice(data.sale_price != null ? String(data.sale_price) : '');
+        setCategoryId(data.category_id);
+      }
+      setLoading(false);
+    });
+  }, [productId, selectedLocationId]);
 
   async function loadCategories() {
     const { data } = await supabase.from('categories').select('*').order('name');
@@ -126,12 +131,20 @@ export default function AddProductScreen({ navigation, route }: Props) {
       .update({
         name: name.trim(),
         barcode: barcode.trim() || null,
-        min_stock: Number(minStock) || 0,
         cost_price: costPrice.trim() ? Number(costPrice) : null,
         sale_price: salePrice.trim() ? Number(salePrice) : null,
         category_id: categoryId,
       })
       .eq('id', productId);
+
+    if (!dbError && selectedLocationId) {
+      await supabase
+        .from('product_stock')
+        .upsert(
+          { product_id: productId, location_id: selectedLocationId, min_stock: Number(minStock) || 0 },
+          { onConflict: 'product_id,location_id' }
+        );
+    }
     setSubmitting(false);
 
     if (dbError) {

@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
 import type { ThemeColors, ThemeCard } from '../theme';
 import type { Audit } from '../types';
 import type { RootStackParamList } from '../navigation/types';
@@ -14,6 +15,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Audits'>;
 export default function AuditsScreen({ navigation }: Props) {
   const { session, profile } = useAuth();
   const { colors, card } = useTheme();
+  const { selectedLocationId } = useLocation();
   const styles = useMemo(() => createStyles(colors, card), [colors, card]);
   const [audits, setAudits] = useState<Audit[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -24,12 +26,14 @@ export default function AuditsScreen({ navigation }: Props) {
   const canStart = profile?.role === 'admin' || profile?.role === 'auditor';
 
   const loadAudits = useCallback(async () => {
+    if (!selectedLocationId) return;
     const { data } = await supabase
       .from('audits')
       .select('*, profiles(full_name)')
+      .eq('location_id', selectedLocationId)
       .order('started_at', { ascending: false });
     setAudits((data as Audit[]) ?? []);
-  }, []);
+  }, [selectedLocationId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -44,12 +48,13 @@ export default function AuditsScreen({ navigation }: Props) {
   }
 
   async function handleStartAudit() {
-    if (!session) return;
+    if (!session || !selectedLocationId) return;
     setError(null);
     setSubmitting(true);
     const { error: insertError } = await supabase.from('audits').insert({
       started_by: session.user.id,
       note: note.trim() || null,
+      location_id: selectedLocationId,
     });
     setSubmitting(false);
     if (insertError) {

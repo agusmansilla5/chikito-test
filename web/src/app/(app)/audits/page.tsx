@@ -1,17 +1,23 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
+import { getLocations, getSelectedLocationId } from '@/lib/location';
 import type { Audit } from '@/lib/types';
 import { StartAuditForm } from './audits-client';
 
 export default async function AuditsPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
+  const locations = await getLocations();
+  const locationId = await getSelectedLocationId(locations);
 
-  const { data: audits } = await supabase
-    .from('audits')
-    .select('*, profiles(full_name)')
-    .order('started_at', { ascending: false });
+  const { data: audits } = locationId
+    ? await supabase
+        .from('audits')
+        .select('*, profiles(full_name)')
+        .eq('location_id', locationId)
+        .order('started_at', { ascending: false })
+    : { data: [] };
 
   const auditList = (audits as Audit[]) ?? [];
   const canStart = profile.role === 'admin' || profile.role === 'auditor';

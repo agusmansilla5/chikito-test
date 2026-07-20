@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
 import type { ThemeColors, ThemeCard } from '../theme';
 import { StatCard } from '../components/StatCard';
 import { MovementsChart } from '../components/MovementsChart';
@@ -15,6 +16,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Reports'>;
 
 export default function ReportsScreen({ navigation }: Props) {
   const { colors, card } = useTheme();
+  const { selectedLocationId } = useLocation();
   const styles = useMemo(() => createStyles(colors, card), [colors, card]);
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [lowStock, setLowStock] = useState<Product[]>([]);
@@ -24,6 +26,7 @@ export default function ReportsScreen({ navigation }: Props) {
   const [exporting, setExporting] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!selectedLocationId) return;
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -33,20 +36,35 @@ export default function ReportsScreen({ navigation }: Props) {
         supabase
           .from('stock_movements')
           .select('*, products(name), profiles(full_name)')
+          .eq('location_id', selectedLocationId)
           .order('created_at', { ascending: false })
           .limit(50),
-        supabase.from('low_stock_products').select('*'),
-        supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
+        supabase.from('low_stock_products').select('*').eq('location_id', selectedLocationId),
+        supabase
+          .from('products')
+          .select('*, categories(name), product_stock!inner(quantity, min_stock)')
+          .eq('active', true)
+          .eq('product_stock.location_id', selectedLocationId)
+          .order('name'),
         supabase
           .from('stock_movements')
           .select('type, quantity, created_at')
+          .eq('location_id', selectedLocationId)
           .gte('created_at', sevenDaysAgo.toISOString()),
       ]);
     setMovements((movementsData as StockMovement[]) ?? []);
     setLowStock((lowStockData as Product[]) ?? []);
-    setAllProducts((productsData as Product[]) ?? []);
+    const productsRows =
+      (productsData as (Product & { product_stock: { quantity: number; min_stock: number }[] })[]) ?? [];
+    setAllProducts(
+      productsRows.map((p) => ({
+        ...p,
+        quantity: p.product_stock[0]?.quantity ?? 0,
+        min_stock: p.product_stock[0]?.min_stock ?? 0,
+      }))
+    );
     setWeekMovements(weekData ?? []);
-  }, []);
+  }, [selectedLocationId]);
 
   useFocusEffect(
     useCallback(() => {

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { getSelectedLocationId } from '@/lib/location';
 import type { MovementType } from '@/lib/types';
 
 export async function registerMovement(productId: string, type: MovementType, quantity: number, note: string | null) {
@@ -11,9 +12,13 @@ export async function registerMovement(productId: string, type: MovementType, qu
   } = await supabase.auth.getUser();
   if (!user) return { error: 'No autenticado.' };
 
+  const locationId = await getSelectedLocationId();
+  if (!locationId) return { error: 'No hay ningún local configurado.' };
+
   const { data: openAudit } = await supabase
     .from('audits')
     .select('id')
+    .eq('location_id', locationId)
     .is('ended_at', null)
     .order('started_at', { ascending: false })
     .limit(1)
@@ -25,6 +30,7 @@ export async function registerMovement(productId: string, type: MovementType, qu
     quantity,
     note,
     created_by: user.id,
+    location_id: locationId,
     audit_id: openAudit?.id ?? null,
   });
   if (error) return { error: error.message };

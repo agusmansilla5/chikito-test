@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, ActivityIndicator } from 'react-native';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { LocationProvider } from './src/context/LocationContext';
 import LoginScreen from './src/screens/LoginScreen';
 import ProductListScreen from './src/screens/ProductListScreen';
 import AddMovementScreen from './src/screens/AddMovementScreen';
@@ -12,7 +13,7 @@ import ReportsScreen from './src/screens/ReportsScreen';
 import AuditsScreen from './src/screens/AuditsScreen';
 import AuditDetailScreen from './src/screens/AuditDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import { HeaderLogoutButton } from './src/components/HeaderLogoutButton';
+import { HeaderBar } from './src/components/HeaderBar';
 import type { RootStackParamList } from './src/navigation/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -51,22 +52,22 @@ function RootNavigator() {
         <Stack.Screen
           name="Reports"
           component={ReportsScreen}
-          options={{ title: 'Panel de control', headerRight: HeaderLogoutButton }}
+          options={{ title: 'Panel de control', headerRight: HeaderBar }}
         />
         <Stack.Screen
           name="Audits"
           component={AuditsScreen}
-          options={{ title: 'Auditorías', headerRight: HeaderLogoutButton }}
+          options={{ title: 'Auditorías', headerRight: HeaderBar }}
         />
         <Stack.Screen
           name="ProductList"
           component={ProductListScreen}
-          options={{ title: 'Productos', headerRight: HeaderLogoutButton }}
+          options={{ title: 'Productos', headerRight: HeaderBar }}
         />
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
-          options={{ title: 'Configuración', headerRight: HeaderLogoutButton }}
+          options={{ title: 'Configuración', headerRight: HeaderBar }}
         />
         <Stack.Screen name="AddMovement" component={AddMovementScreen} options={{ title: 'Movimiento / producto' }} />
         <Stack.Screen name="AddProduct" component={AddProductScreen} options={{ title: 'Editar producto' }} />
@@ -85,8 +86,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RootNavigator />
-        <ThemedStatusBar />
+        <LocationProvider>
+          <RootNavigator />
+          <ThemedStatusBar />
+        </LocationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

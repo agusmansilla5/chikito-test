@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
+import { getLocations, getSelectedLocationId } from '@/lib/location';
 import type { Product, Category } from '@/lib/types';
 import { MovementClient } from './movement-client';
+
+type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
 
 export default async function MovementPage() {
   const profile = await requireProfile();
@@ -16,18 +19,42 @@ export default async function MovementPage() {
   }
 
   const supabase = await createClient();
+  const locations = await getLocations();
+  const locationId = await getSelectedLocationId(locations);
 
-  const [{ data: products }, { data: categories }, { data: openAudit }] = await Promise.all([
-    supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
+  const [{ data: productsRaw }, { data: categories }, { data: openAudit }] = await Promise.all([
+    locationId
+      ? supabase
+          .from('products')
+          .select('*, categories(name), product_stock!inner(quantity, min_stock)')
+          .eq('active', true)
+          .eq('product_stock.location_id', locationId)
+          .order('name')
+      : Promise.resolve({ data: [] as ProductWithStock[] }),
     supabase.from('categories').select('*').order('name'),
-    supabase.from('audits').select('note').is('ended_at', null).order('started_at', { ascending: false }).limit(1).maybeSingle(),
+    locationId
+      ? supabase
+          .from('audits')
+          .select('note')
+          .eq('location_id', locationId)
+          .is('ended_at', null)
+          .order('started_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const products: Product[] = ((productsRaw as ProductWithStock[]) ?? []).map((p) => ({
+    ...p,
+    quantity: p.product_stock[0]?.quantity ?? 0,
+    min_stock: p.product_stock[0]?.min_stock ?? 0,
+  }));
 
   return (
     <div>
       <h1 className="mb-6 text-2xl font-semibold text-foreground">Registrar movimiento</h1>
       <MovementClient
-        initialProducts={(products as Product[]) ?? []}
+        initialProducts={products}
         initialCategories={(categories as Category[]) ?? []}
         openAuditNote={openAudit ? (openAudit.note ?? null) : undefined}
       />

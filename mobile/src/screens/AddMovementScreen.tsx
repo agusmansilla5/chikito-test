@@ -13,6 +13,7 @@ import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'ex
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
 import type { ThemeColors, ThemeCard } from '../theme';
 import { BARCODE_TYPES } from '../constants';
 import { findSimilarProducts } from '../lib/matching';
@@ -28,6 +29,7 @@ const looksLikeBarcode = (text: string) => /^\d{6,}$/.test(text.trim());
 export default function AddMovementScreen({ navigation }: Props) {
   const { session } = useAuth();
   const { colors } = useTheme();
+  const { locations, selectedLocationId } = useLocation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -51,6 +53,7 @@ export default function AddMovementScreen({ navigation }: Props) {
   const [activeAudit, setActiveAudit] = useState<Audit | null>(null);
 
   useEffect(() => {
+    if (!selectedLocationId) return;
     loadProducts();
     supabase
       .from('categories')
@@ -60,20 +63,26 @@ export default function AddMovementScreen({ navigation }: Props) {
     supabase
       .from('audits')
       .select('*')
+      .eq('location_id', selectedLocationId)
       .is('ended_at', null)
       .order('started_at', { ascending: false })
       .limit(1)
       .maybeSingle()
       .then(({ data }) => setActiveAudit(data as Audit | null));
-  }, []);
+  }, [selectedLocationId]);
 
   async function loadProducts() {
+    if (!selectedLocationId) return;
     const { data } = await supabase
       .from('products')
-      .select('*, categories(name)')
+      .select('*, categories(name), product_stock!inner(quantity, min_stock)')
       .eq('active', true)
+      .eq('product_stock.location_id', selectedLocationId)
       .order('name');
-    setProducts((data as Product[]) ?? []);
+    const rows = (data as (Product & { product_stock: { quantity: number; min_stock: number }[] })[]) ?? [];
+    setProducts(
+      rows.map((p) => ({ ...p, quantity: p.product_stock[0]?.quantity ?? 0, min_stock: p.product_stock[0]?.min_stock ?? 0 }))
+    );
   }
 
   const similarProducts = useMemo(
@@ -165,14 +174,13 @@ export default function AddMovementScreen({ navigation }: Props) {
       .insert({
         name: newName.trim(),
         barcode: newBarcode.trim() || null,
-        min_stock: Number(newMinStock) || 0,
         category_id: newCategoryId,
       })
       .select('*, categories(name)')
       .single();
-    setSubmitting(false);
 
     if (insertError) {
+      setSubmitting(false);
       if (insertError.code === '23505') {
         setError(
           insertError.message.includes('products_name_lower_idx')
@@ -184,7 +192,21 @@ export default function AddMovementScreen({ navigation }: Props) {
       }
       return;
     }
-    const created = data as Product;
+
+    const minStock = Number(newMinStock) || 0;
+    if (locations.length > 0) {
+      await supabase.from('product_stock').insert(
+        locations.map((l) => ({
+          product_id: data.id,
+          location_id: l.id,
+          quantity: 0,
+          min_stock: l.id === selectedLocationId ? minStock : 0,
+        }))
+      );
+    }
+    setSubmitting(false);
+
+    const created = { ...data, quantity: 0, min_stock: minStock } as Product;
     setProducts((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
     setCreating(false);
     setQuery('');
@@ -202,7 +224,7 @@ export default function AddMovementScreen({ navigation }: Props) {
       setError('Ingresá una cantidad válida.');
       return;
     }
-    if (!session) return;
+    if (!session || !selectedLocationId) return;
 
     setSubmitting(true);
     const { error: insertError } = await supabase.from('stock_movements').insert({
@@ -211,6 +233,7 @@ export default function AddMovementScreen({ navigation }: Props) {
       quantity: qty,
       note: note.trim() || null,
       created_by: session.user.id,
+      location_id: selectedLocationId,
       audit_id: activeAudit?.id ?? null,
     });
     setSubmitting(false);

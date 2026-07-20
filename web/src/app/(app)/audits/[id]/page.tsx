@@ -11,14 +11,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: audit }, { data: movements }] = await Promise.all([
-    supabase.from('audits').select('*, profiles(full_name)').eq('id', id).single(),
-    supabase
-      .from('stock_movements')
-      .select('*, products(name, quantity, min_stock), profiles(full_name)')
-      .eq('audit_id', id)
-      .order('created_at', { ascending: false }),
-  ]);
+  const { data: audit } = await supabase.from('audits').select('*, profiles(full_name)').eq('id', id).single();
 
   if (!audit) {
     return (
@@ -29,10 +22,25 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
   }
 
   const auditData = audit as Audit;
-  type MovementWithStock = StockMovement & {
-    products: { name: string; quantity: number; min_stock: number } | null;
-  };
-  const movementList = (movements as MovementWithStock[]) ?? [];
+
+  const { data: movements } = await supabase
+    .from('stock_movements')
+    .select('*, products(name), profiles(full_name)')
+    .eq('audit_id', id)
+    .order('created_at', { ascending: false });
+
+  const movementList = (movements as StockMovement[]) ?? [];
+
+  const productIds = Array.from(new Set(movementList.map((m) => m.product_id)));
+  const { data: stockRows } =
+    productIds.length > 0
+      ? await supabase
+          .from('product_stock')
+          .select('product_id, quantity, min_stock')
+          .eq('location_id', auditData.location_id)
+          .in('product_id', productIds)
+      : { data: [] };
+  const stockByProduct = new Map((stockRows ?? []).map((r) => [r.product_id, r]));
   const isOpen = !auditData.ended_at;
   const canClose = profile.role === 'admin' || profile.role === 'auditor';
 
@@ -42,12 +50,13 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
   >();
   for (const m of movementList) {
     if (!summaryMap.has(m.product_id)) {
+      const stock = stockByProduct.get(m.product_id);
       summaryMap.set(m.product_id, {
         name: m.products?.name ?? 'Producto',
         entradas: 0,
         salidas: 0,
-        stockFinal: m.products?.quantity ?? 0,
-        minStock: m.products?.min_stock ?? 0,
+        stockFinal: stock?.quantity ?? 0,
+        minStock: stock?.min_stock ?? 0,
       });
     }
     const row = summaryMap.get(m.product_id)!;

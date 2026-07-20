@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { getLocations, getSelectedLocationId } from '@/lib/location';
 
 export type ProductInput = {
   name: string;
@@ -25,13 +26,29 @@ export async function createProduct(input: ProductInput, initialQuantity: number
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: product, error } = await supabase.from('products').insert(input).select().single();
+  const { min_stock, ...productFields } = input;
+  const { data: product, error } = await supabase.from('products').insert(productFields).select().single();
   if (error) return { error: describeProductError(error) };
 
-  if (initialQuantity > 0 && user) {
+  const locations = await getLocations();
+  const locationId = await getSelectedLocationId(locations);
+
+  if (locations.length > 0) {
+    await supabase.from('product_stock').insert(
+      locations.map((l) => ({
+        product_id: product.id,
+        location_id: l.id,
+        quantity: 0,
+        min_stock: l.id === locationId ? min_stock : 0,
+      }))
+    );
+  }
+
+  if (initialQuantity > 0 && user && locationId) {
     const { data: openAudit } = await supabase
       .from('audits')
       .select('id')
+      .eq('location_id', locationId)
       .is('ended_at', null)
       .order('started_at', { ascending: false })
       .limit(1)
@@ -42,6 +59,7 @@ export async function createProduct(input: ProductInput, initialQuantity: number
       type: 'entrada',
       quantity: initialQuantity,
       created_by: user.id,
+      location_id: locationId,
       audit_id: openAudit?.id ?? null,
       note: 'Cantidad inicial al crear el producto',
     });
@@ -55,8 +73,17 @@ export async function createProduct(input: ProductInput, initialQuantity: number
 
 export async function updateProduct(id: string, input: ProductInput) {
   const supabase = await createClient();
-  const { error } = await supabase.from('products').update(input).eq('id', id);
+  const { min_stock, ...productFields } = input;
+  const { error } = await supabase.from('products').update(productFields).eq('id', id);
   if (error) return { error: describeProductError(error) };
+
+  const locationId = await getSelectedLocationId();
+  if (locationId) {
+    await supabase
+      .from('product_stock')
+      .upsert({ product_id: id, location_id: locationId, min_stock }, { onConflict: 'product_id,location_id' });
+  }
+
   revalidatePath('/products');
   return { error: null };
 }

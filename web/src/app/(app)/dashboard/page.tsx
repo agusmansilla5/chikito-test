@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getLocations, getSelectedLocationId } from '@/lib/location';
 import type { Product, StockMovement } from '@/lib/types';
 import { StatCard } from '../stat-card';
 import { RealtimeRefresh } from './realtime-refresh';
@@ -6,31 +7,48 @@ import { ReportExport } from './report-export';
 import { StockReportExport } from './stock-report-export';
 import { MovementsChart } from './movements-chart';
 
+type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
+
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const locations = await getLocations();
+  const locationId = await getSelectedLocationId(locations);
 
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   sevenDaysAgo.setHours(0, 0, 0, 0);
 
-  const [{ data: movements }, { data: lowStock }, { data: allProducts }, { data: weekMovements }] =
-    await Promise.all([
-      supabase
-        .from('stock_movements')
-        .select('*, products(name), profiles(full_name)')
-        .order('created_at', { ascending: false })
-        .limit(50),
-      supabase.from('low_stock_products').select('*'),
-      supabase.from('products').select('*, categories(name)').eq('active', true).order('name'),
-      supabase
-        .from('stock_movements')
-        .select('type, quantity, created_at')
-        .gte('created_at', sevenDaysAgo.toISOString()),
-    ]);
+  const [{ data: movements }, { data: lowStock }, { data: productsRaw }, { data: weekMovements }] =
+    locationId
+      ? await Promise.all([
+          supabase
+            .from('stock_movements')
+            .select('*, products(name), profiles(full_name)')
+            .eq('location_id', locationId)
+            .order('created_at', { ascending: false })
+            .limit(50),
+          supabase.from('low_stock_products').select('*').eq('location_id', locationId),
+          supabase
+            .from('products')
+            .select('*, categories(name), product_stock!inner(quantity, min_stock)')
+            .eq('active', true)
+            .eq('product_stock.location_id', locationId)
+            .order('name'),
+          supabase
+            .from('stock_movements')
+            .select('type, quantity, created_at')
+            .eq('location_id', locationId)
+            .gte('created_at', sevenDaysAgo.toISOString()),
+        ])
+      : [{ data: [] }, { data: [] }, { data: [] as ProductWithStock[] }, { data: [] }];
 
   const movementList = (movements as StockMovement[]) ?? [];
   const lowStockList = (lowStock as Product[]) ?? [];
-  const productList = (allProducts as Product[]) ?? [];
+  const productList: Product[] = ((productsRaw as ProductWithStock[]) ?? []).map((p) => ({
+    ...p,
+    quantity: p.product_stock[0]?.quantity ?? 0,
+    min_stock: p.product_stock[0]?.min_stock ?? 0,
+  }));
 
   const todayKey = new Date().toDateString();
   const movementsToday = movementList.filter((m) => new Date(m.created_at).toDateString() === todayKey).length;

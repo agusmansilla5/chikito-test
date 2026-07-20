@@ -11,6 +11,12 @@ export type Category = {
   name: string;
 };
 
+export type Location = {
+  id: string;
+  name: string;
+  address: string | null;
+};
+
 export type Product = {
   id: string;
   barcode: string | null;
@@ -29,6 +35,7 @@ export type Audit = {
   started_at: string;
   ended_at: string | null;
   note: string | null;
+  location_id: string;
   profiles?: { full_name: string } | null;
 };
 
@@ -41,6 +48,7 @@ export type StockMovement = {
   quantity: number;
   note: string | null;
   created_at: string;
+  location_id: string;
   products?: { name: string } | null;
   profiles?: { full_name: string } | null;
 };
