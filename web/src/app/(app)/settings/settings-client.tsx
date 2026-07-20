@@ -136,14 +136,14 @@ export function SettingsClient() {
     <div className="max-w-xl">
       <section className="mb-8 rounded-xl border border-zinc-200 bg-surface p-5 shadow-sm dark:border-zinc-800">
         <h2 className="mb-1 font-semibold text-foreground">Modo</h2>
-        <p className="mb-4 text-sm text-foreground/60">Elegí entre modo claro y modo nocturno.</p>
+        <p className="mb-4 text-sm text-foreground">Elegí entre modo claro y modo nocturno.</p>
         <div className="flex gap-2">
           <button
             onClick={() => handleModeChange('light')}
             className={`flex-1 rounded-md border px-4 py-2 text-sm font-medium ${
               mode === 'light'
                 ? 'border-accent bg-accent text-accent-foreground'
-                : 'border-zinc-300 text-foreground/70 hover:bg-background dark:border-zinc-700'
+                : 'border-zinc-300 text-foreground hover:bg-background dark:border-zinc-700'
             }`}
           >
             ☀️ Claro
@@ -153,7 +153,7 @@ export function SettingsClient() {
             className={`flex-1 rounded-md border px-4 py-2 text-sm font-medium ${
               mode === 'dark'
                 ? 'border-accent bg-accent text-accent-foreground'
-                : 'border-zinc-300 text-foreground/70 hover:bg-background dark:border-zinc-700'
+                : 'border-zinc-300 text-foreground hover:bg-background dark:border-zinc-700'
             }`}
           >
             🌙 Oscuro
@@ -165,12 +165,12 @@ export function SettingsClient() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="font-semibold text-foreground">Colores</h2>
-            <p className="text-sm text-foreground/60">
+            <p className="text-sm text-foreground">
               Personalizá los colores del modo {mode === 'light' ? 'claro' : 'oscuro'} en formato HEX.
             </p>
           </div>
           {hasOverrideForMode && (
-            <button onClick={handleReset} className="text-sm font-medium text-foreground/60 hover:text-red-600">
+            <button onClick={handleReset} className="text-sm font-medium text-foreground hover:text-red-600">
               Restablecer
             </button>
           )}
@@ -182,8 +182,8 @@ export function SettingsClient() {
             const error = hexErrors[field.key];
             return (
               <div key={field.key}>
-                <label className="mb-1 block text-sm font-medium text-foreground/80">{field.label}</label>
-                <p className="mb-2 text-xs text-foreground/60">{field.hint}</p>
+                <label className="mb-1 block text-sm font-medium text-foreground">{field.label}</label>
+                <p className="mb-2 text-xs text-foreground">{field.hint}</p>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"

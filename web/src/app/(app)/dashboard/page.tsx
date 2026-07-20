@@ -83,7 +83,7 @@ export default async function DashboardPage() {
         </div>
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
           <table className="w-full text-sm">
-            <thead className="bg-background text-left text-foreground/60">
+            <thead className="bg-background text-left text-foreground">
               <tr>
                 <th className="px-4 py-2 font-medium">Producto</th>
                 <th className="px-4 py-2 font-medium">Rubro</th>
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
             <tbody>
               {productList.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-foreground/40">
+                  <td colSpan={5} className="px-4 py-6 text-center text-foreground">
                     No hay productos cargados todavía.
                   </td>
                 </tr>
@@ -105,16 +105,16 @@ export default async function DashboardPage() {
                 return (
                   <tr key={p.id} className="border-t border-zinc-100 dark:border-zinc-800">
                     <td className="px-4 py-2 font-medium text-foreground">{p.name}</td>
-                    <td className="px-4 py-2 text-foreground/60">{p.categories?.name ?? 'Sin rubro'}</td>
+                    <td className="px-4 py-2 text-foreground">{p.categories?.name ?? 'Sin rubro'}</td>
                     <td className={`px-4 py-2 font-semibold ${missing > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {p.quantity}
                     </td>
-                    <td className="px-4 py-2 text-foreground/60">{p.min_stock}</td>
+                    <td className="px-4 py-2 text-foreground">{p.min_stock}</td>
                     <td className="px-4 py-2">
                       {missing > 0 ? (
                         <span className="font-semibold text-red-600">{missing}</span>
                       ) : (
-                        <span className="text-foreground/40">—</span>
+                        <span className="text-foreground">—</span>
                       )}
                     </td>
                   </tr>
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
         </div>
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
           <table className="w-full text-sm">
-            <thead className="bg-background text-left text-foreground/60">
+            <thead className="bg-background text-left text-foreground">
               <tr>
                 <th className="px-4 py-2 font-medium">Producto</th>
                 <th className="px-4 py-2 font-medium">Tipo</th>
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
             <tbody>
               {movementList.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-foreground/40">
+                  <td colSpan={5} className="px-4 py-6 text-center text-foreground">
                     Todavía no hay movimientos registrados.
                   </td>
                 </tr>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
                   </td>
                   <td className="px-4 py-2">{m.quantity}</td>
                   <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
-                  <td className="px-4 py-2 text-foreground/60">
+                  <td className="px-4 py-2 text-foreground">
                     {new Date(m.created_at).toLocaleString('es-AR')}
                   </td>
                 </tr>

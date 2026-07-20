@@ -10,7 +10,7 @@ export default async function MovementPage() {
     return (
       <div>
         <h1 className="mb-2 text-2xl font-semibold text-foreground">Registrar movimiento</h1>
-        <p className="text-sm text-foreground/60">Tu rol (jefe) solo tiene acceso de lectura a los reportes.</p>
+        <p className="text-sm text-foreground">Tu rol (jefe) solo tiene acceso de lectura a los reportes.</p>
       </div>
     );
   }

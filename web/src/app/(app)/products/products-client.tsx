@@ -217,7 +217,7 @@ export function ProductsClient({
 
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-background text-left text-foreground/60">
+          <thead className="bg-background text-left text-foreground">
             <tr>
               <th
                 className="cursor-pointer select-none px-4 py-2 font-medium hover:text-foreground"
@@ -250,7 +250,7 @@ export function ProductsClient({
           {filtered.length === 0 && (
             <tbody>
               <tr>
-                <td colSpan={canEdit ? 6 : 5} className="px-4 py-6 text-center text-foreground/40">
+                <td colSpan={canEdit ? 6 : 5} className="px-4 py-6 text-center text-foreground">
                   No se encontraron productos.
                 </td>
               </tr>
@@ -261,7 +261,7 @@ export function ProductsClient({
               <tr className="bg-background">
                 <td
                   colSpan={canEdit ? 6 : 5}
-                  className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground/60"
+                  className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground"
                 >
                   {categoryName}
                 </td>
@@ -269,14 +269,14 @@ export function ProductsClient({
               {items.map((p) => (
                 <tr key={p.id} className="border-t border-zinc-100 dark:border-zinc-800">
                   <td className="px-4 py-2 font-medium text-foreground">{p.name}</td>
-                  <td className="px-4 py-2 text-foreground/60">{p.barcode ?? '—'}</td>
-                  <td className="px-4 py-2 text-foreground/60">{p.categories?.name ?? SIN_RUBRO}</td>
+                  <td className="px-4 py-2 text-foreground">{p.barcode ?? '—'}</td>
+                  <td className="px-4 py-2 text-foreground">{p.categories?.name ?? SIN_RUBRO}</td>
                   <td
                     className={`px-4 py-2 font-semibold ${p.quantity < p.min_stock ? 'text-red-600' : 'text-green-600'}`}
                   >
                     {p.quantity}
                   </td>
-                  <td className="px-4 py-2 text-foreground/60">{p.min_stock}</td>
+                  <td className="px-4 py-2 text-foreground">{p.min_stock}</td>
                   {canEdit && (
                     <td className="px-4 py-2">
                       <button onClick={() => openEdit(p)} className="mr-3 text-accent hover:underline">
@@ -295,12 +295,12 @@ export function ProductsClient({
       </div>
 
       {categories.length > 0 && canEdit && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-foreground/60">
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-foreground">
           <span>Rubros:</span>
           {categories.map((c) => (
             <span key={c.id} className="flex items-center gap-1 rounded-full bg-background px-2 py-1">
               {c.name}
-              <button onClick={() => handleDeleteCategory(c)} className="text-foreground/40 hover:text-red-600">
+              <button onClick={() => handleDeleteCategory(c)} className="text-foreground hover:text-red-600">
                 ×
               </button>
             </span>
@@ -315,7 +315,7 @@ export function ProductsClient({
               {form.id ? 'Editar producto' : 'Nuevo producto'}
             </h2>
 
-            <label className="mb-1 block text-sm font-medium text-foreground/80">Nombre</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Nombre</label>
             <input
               type="text"
               value={form.name}
@@ -335,13 +335,13 @@ export function ProductsClient({
                     className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm hover:bg-amber-100"
                   >
                     <span className="font-medium text-foreground">{p.name}</span>
-                    <span className="text-xs text-foreground/60">Stock: {p.quantity}</span>
+                    <span className="text-xs text-foreground">Stock: {p.quantity}</span>
                   </button>
                 ))}
               </div>
             )}
 
-            <label className="mb-1 block text-sm font-medium text-foreground/80">Código de barras (opcional)</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Código de barras (opcional)</label>
             <input
               type="text"
               value={form.barcode}
@@ -351,21 +351,21 @@ export function ProductsClient({
 
             {!form.id && (
               <>
-                <label className="mb-1 block text-sm font-medium text-foreground/80">Cantidad inicial</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">Cantidad inicial</label>
                 <input
                   type="number"
                   value={form.initial_quantity}
                   onChange={(e) => setForm((f) => ({ ...f, initial_quantity: e.target.value }))}
                   className="mb-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
                 />
-                <p className="mb-3 text-xs text-foreground/40">
+                <p className="mb-3 text-xs text-foreground">
                   Si ponés una cantidad, queda registrada como movimiento (y se suma a la auditoría en curso, si hay
                   una abierta).
                 </p>
               </>
             )}
 
-            <label className="mb-1 block text-sm font-medium text-foreground/80">Stock mínimo</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Stock mínimo</label>
             <input
               type="number"
               value={form.min_stock}
@@ -373,7 +373,7 @@ export function ProductsClient({
               className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
             />
 
-            <label className="mb-1 block text-sm font-medium text-foreground/80">Rubro</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Rubro</label>
             <select
               value={form.category_id ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value || null }))}
@@ -407,7 +407,7 @@ export function ProductsClient({
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setModalOpen(false)}
-                className="rounded-md px-4 py-2 text-sm font-medium text-foreground/70 hover:bg-background dark:hover:bg-zinc-800"
+                className="rounded-md px-4 py-2 text-sm font-medium text-foreground hover:bg-background dark:hover:bg-zinc-800"
               >
                 Cancelar
               </button>

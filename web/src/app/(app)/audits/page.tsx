@@ -25,7 +25,7 @@ export default async function AuditsPage() {
       <h2 className="mb-3 text-lg font-medium text-foreground">Historial de auditorías</h2>
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-background text-left text-foreground/60">
+          <thead className="bg-background text-left text-foreground">
             <tr>
               <th className="px-4 py-2 font-medium">Fecha inicio</th>
               <th className="px-4 py-2 font-medium">Fecha cierre</th>
@@ -38,7 +38,7 @@ export default async function AuditsPage() {
           <tbody>
             {auditList.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-foreground/40">
+                <td colSpan={6} className="px-4 py-6 text-center text-foreground">
                   Todavía no se inició ninguna auditoría.
                 </td>
               </tr>
@@ -50,7 +50,7 @@ export default async function AuditsPage() {
                   <td className="px-4 py-2 font-medium text-foreground">
                     {new Date(a.started_at).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })}
                   </td>
-                  <td className="px-4 py-2 text-foreground/60">
+                  <td className="px-4 py-2 text-foreground">
                     {a.ended_at
                       ? new Date(a.ended_at).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })
                       : '—'}
@@ -66,8 +66,8 @@ export default async function AuditsPage() {
                       {isOpen ? 'En curso' : 'Cerrada'}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-foreground/60">{a.profiles?.full_name ?? '—'}</td>
-                  <td className="px-4 py-2 text-foreground/60">{a.note ?? '—'}</td>
+                  <td className="px-4 py-2 text-foreground">{a.profiles?.full_name ?? '—'}</td>
+                  <td className="px-4 py-2 text-foreground">{a.note ?? '—'}</td>
                   <td className="px-4 py-2">
                     <Link href={`/audits/${a.id}`} className="font-medium text-accent hover:underline">
                       Ver detalle

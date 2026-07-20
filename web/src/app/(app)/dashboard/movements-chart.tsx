@@ -7,7 +7,7 @@ export function MovementsChart({ data }: { data: DayData[] }) {
     <div className="rounded-xl border border-zinc-200 bg-surface p-5 shadow-sm dark:border-zinc-800">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Movimientos — últimos 7 días</h2>
-        <div className="flex items-center gap-4 text-xs text-foreground/60">
+        <div className="flex items-center gap-4 text-xs text-foreground">
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full bg-green-600" /> Entradas
           </span>
@@ -37,7 +37,7 @@ export function MovementsChart({ data }: { data: DayData[] }) {
       </div>
       <div className="flex gap-4">
         {data.map((d) => (
-          <div key={d.label} className="flex-1 pt-2 text-center text-xs capitalize text-foreground/60">
+          <div key={d.label} className="flex-1 pt-2 text-center text-xs capitalize text-foreground">
             {d.label}
           </div>
         ))}

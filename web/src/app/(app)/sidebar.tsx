@@ -87,7 +87,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-accent/10 text-accent'
-                  : 'text-foreground/70 hover:bg-background hover:text-foreground'
+                  : 'text-foreground hover:bg-background hover:text-foreground'
               }`}
             >
               <svg
@@ -108,7 +108,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
 
       <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
         <p className="truncate text-sm font-medium text-foreground">{profile.full_name}</p>
-        <p className="mb-3 text-xs capitalize text-foreground/60">{profile.role}</p>
+        <p className="mb-3 text-xs capitalize text-foreground">{profile.role}</p>
         <LogoutButton />
       </div>
     </aside>
