@@ -51,7 +51,7 @@ export default async function DashboardPage() {
     <div>
       <RealtimeRefresh />
 
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Panel de control</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-foreground">Panel de control</h1>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Movimientos de hoy" value={movementsToday} />
@@ -78,12 +78,12 @@ export default async function DashboardPage() {
 
       <section className="mb-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Stock actual</h2>
+          <h2 className="text-lg font-medium text-foreground">Stock actual</h2>
           <StockReportExport products={productList} />
         </div>
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
           <table className="w-full text-sm">
-            <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
+            <thead className="bg-background text-left text-foreground/60">
               <tr>
                 <th className="px-4 py-2 font-medium">Producto</th>
                 <th className="px-4 py-2 font-medium">Rubro</th>
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
             <tbody>
               {productList.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-zinc-400">
+                  <td colSpan={5} className="px-4 py-6 text-center text-foreground/40">
                     No hay productos cargados todavía.
                   </td>
                 </tr>
@@ -104,17 +104,17 @@ export default async function DashboardPage() {
                 const missing = Math.max(0, p.min_stock - p.quantity);
                 return (
                   <tr key={p.id} className="border-t border-zinc-100 dark:border-zinc-800">
-                    <td className="px-4 py-2 font-medium text-zinc-900 dark:text-zinc-50">{p.name}</td>
-                    <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.categories?.name ?? 'Sin rubro'}</td>
+                    <td className="px-4 py-2 font-medium text-foreground">{p.name}</td>
+                    <td className="px-4 py-2 text-foreground/60">{p.categories?.name ?? 'Sin rubro'}</td>
                     <td className={`px-4 py-2 font-semibold ${missing > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {p.quantity}
                     </td>
-                    <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{p.min_stock}</td>
+                    <td className="px-4 py-2 text-foreground/60">{p.min_stock}</td>
                     <td className="px-4 py-2">
                       {missing > 0 ? (
                         <span className="font-semibold text-red-600">{missing}</span>
                       ) : (
-                        <span className="text-zinc-400">—</span>
+                        <span className="text-foreground/40">—</span>
                       )}
                     </td>
                   </tr>
@@ -127,12 +127,12 @@ export default async function DashboardPage() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Últimos movimientos</h2>
+          <h2 className="text-lg font-medium text-foreground">Últimos movimientos</h2>
           <ReportExport movements={movementList} />
         </div>
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
           <table className="w-full text-sm">
-            <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
+            <thead className="bg-background text-left text-foreground/60">
               <tr>
                 <th className="px-4 py-2 font-medium">Producto</th>
                 <th className="px-4 py-2 font-medium">Tipo</th>
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
             <tbody>
               {movementList.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-zinc-400">
+                  <td colSpan={5} className="px-4 py-6 text-center text-foreground/40">
                     Todavía no hay movimientos registrados.
                   </td>
                 </tr>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
                   </td>
                   <td className="px-4 py-2">{m.quantity}</td>
                   <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
-                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">
+                  <td className="px-4 py-2 text-foreground/60">
                     {new Date(m.created_at).toLocaleString('es-AR')}
                   </td>
                 </tr>

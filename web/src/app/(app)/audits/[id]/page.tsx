@@ -23,7 +23,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
   if (!audit) {
     return (
       <div>
-        <p className="text-zinc-500 dark:text-zinc-400">No se encontró la auditoría.</p>
+        <p className="text-foreground/60">No se encontró la auditoría.</p>
       </div>
     );
   }
@@ -70,10 +70,10 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
 
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl font-semibold text-foreground">
             Auditoría del {new Date(auditData.started_at).toLocaleDateString('es-AR', { dateStyle: 'long' })}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-foreground/60">
             Inicio: {new Date(auditData.started_at).toLocaleString('es-AR')}
             {auditData.ended_at && ` · Cierre: ${new Date(auditData.ended_at).toLocaleString('es-AR')}`}
             {' · '}
@@ -82,7 +82,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           {canClose ? (
             <NoteEditor auditId={auditData.id} initialNote={auditData.note} />
           ) : (
-            auditData.note && <p className="mt-1 text-sm italic text-zinc-500 dark:text-zinc-400">{auditData.note}</p>
+            auditData.note && <p className="mt-1 text-sm italic text-foreground/60">{auditData.note}</p>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -100,12 +100,12 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">Productos cargados ({summary.length})</h2>
+        <h2 className="text-lg font-medium text-foreground">Productos cargados ({summary.length})</h2>
         <AuditExport audit={auditData} summary={summary} />
       </div>
       <div className="mb-8 overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
+          <thead className="bg-background text-left text-foreground/60">
             <tr>
               <th className="px-4 py-2 font-medium">Producto</th>
               <th className="px-4 py-2 font-medium">Stock inicial</th>
@@ -119,26 +119,26 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           <tbody>
             {summary.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-zinc-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-foreground/40">
                   Todavía no se cargó ningún producto en esta auditoría.
                 </td>
               </tr>
             )}
             {summary.map((s) => (
               <tr key={s.name} className="border-t border-zinc-100 dark:border-zinc-800">
-                <td className="px-4 py-2 font-medium text-zinc-900 dark:text-zinc-50">{s.name}</td>
-                <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{s.stockInicial}</td>
+                <td className="px-4 py-2 font-medium text-foreground">{s.name}</td>
+                <td className="px-4 py-2 text-foreground/60">{s.stockInicial}</td>
                 <td className="px-4 py-2 text-green-600">{s.entradas > 0 ? `+${s.entradas}` : '—'}</td>
                 <td className="px-4 py-2 text-red-600">{s.salidas > 0 ? `-${s.salidas}` : '—'}</td>
                 <td className={`px-4 py-2 font-semibold ${s.faltaPedir > 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {s.stockFinal}
                 </td>
-                <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{s.minStock}</td>
+                <td className="px-4 py-2 text-foreground/60">{s.minStock}</td>
                 <td className="px-4 py-2">
                   {s.faltaPedir > 0 ? (
                     <span className="font-semibold text-red-600">{s.faltaPedir}</span>
                   ) : (
-                    <span className="text-zinc-400">—</span>
+                    <span className="text-foreground/40">—</span>
                   )}
                 </td>
               </tr>
@@ -147,10 +147,10 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
         </table>
       </div>
 
-      <h2 className="mb-3 text-lg font-medium text-zinc-900 dark:text-zinc-50">Detalle de movimientos</h2>
+      <h2 className="mb-3 text-lg font-medium text-foreground">Detalle de movimientos</h2>
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
+          <thead className="bg-background text-left text-foreground/60">
             <tr>
               <th className="px-4 py-2 font-medium">Producto</th>
               <th className="px-4 py-2 font-medium">Tipo</th>
@@ -162,7 +162,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           <tbody>
             {movementList.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-zinc-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-foreground/40">
                   Sin movimientos.
                 </td>
               </tr>
@@ -183,7 +183,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
                 </td>
                 <td className="px-4 py-2">{m.quantity}</td>
                 <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
-                <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{new Date(m.created_at).toLocaleString('es-AR')}</td>
+                <td className="px-4 py-2 text-foreground/60">{new Date(m.created_at).toLocaleString('es-AR')}</td>
               </tr>
             ))}
           </tbody>

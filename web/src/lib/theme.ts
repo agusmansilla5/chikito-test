@@ -1,9 +1,13 @@
 export type ThemeMode = 'light' | 'dark';
 
+// `background` drives both the page background and the card/table ("casillas") surface -
+// they were split into two fields originally, then merged into one at the user's request.
+// `accent` is labeled "Color de casillas" in the UI even though it drives buttons/links/active
+// states, not literal surfaces - kept as-is on purpose, only the label changed.
 export type ThemeColors = {
   background: string;
-  surface: string;
   accent: string;
+  text: string;
 };
 
 // Keyed by mode so a custom color chosen in one mode never leaks into the other.
@@ -13,8 +17,8 @@ export const THEME_MODE_KEY = 'nido-theme-mode';
 export const THEME_COLORS_KEY = 'nido-theme-colors';
 
 export const DEFAULT_COLORS: Record<ThemeMode, ThemeColors> = {
-  light: { background: '#fafafa', surface: '#ffffff', accent: '#2563eb' },
-  dark: { background: '#09090b', surface: '#18181b', accent: '#3b82f6' },
+  light: { background: '#fafafa', accent: '#2563eb', text: '#18181b' },
+  dark: { background: '#09090b', accent: '#3b82f6', text: '#fafafa' },
 };
 
 export const HEX_COLOR_REGEX = /^#([0-9a-f]{6}|[0-9a-f]{3})$/i;
@@ -40,8 +44,11 @@ document.documentElement.setAttribute('data-theme',m);
 var all=JSON.parse(localStorage.getItem('${THEME_COLORS_KEY}')||'null');
 var c=all&&typeof all==='object'?all[m]:null;
 if(c&&typeof c==='object'){
-if(c.background)document.documentElement.style.setProperty('--background',c.background);
-if(c.surface)document.documentElement.style.setProperty('--surface',c.surface);
+if(c.background){
+document.documentElement.style.setProperty('--background',c.background);
+document.documentElement.style.setProperty('--surface',c.background);
+}
+if(c.text)document.documentElement.style.setProperty('--foreground',c.text);
 if(c.accent){
 document.documentElement.style.setProperty('--accent',c.accent);
 var hex=c.accent.length===4?'#'+c.accent[1]+c.accent[1]+c.accent[2]+c.accent[2]+c.accent[3]+c.accent[3]:c.accent;

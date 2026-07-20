@@ -24,7 +24,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
     return (
       <button
         onClick={() => setEditing(true)}
-        className="mt-1 text-left text-sm italic text-zinc-500 hover:text-accent hover:underline dark:text-zinc-400"
+        className="mt-1 text-left text-sm italic text-foreground/60 hover:text-accent hover:underline"
       >
         {initialNote ? initialNote : '+ Agregar nota'}
       </button>
@@ -46,7 +46,7 @@ export function NoteEditor({ auditId, initialNote }: { auditId: string; initialN
             setNote(initialNote ?? '');
             setEditing(false);
           }}
-          className="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-background dark:text-zinc-400"
+          className="rounded-md px-3 py-1.5 text-sm font-medium text-foreground/70 hover:bg-background"
         >
           Cancelar
         </button>

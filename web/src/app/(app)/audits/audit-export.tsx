@@ -72,14 +72,14 @@ export function AuditExport({ audit, summary }: { audit: Audit; summary: Summary
       <button
         onClick={exportExcel}
         disabled={summary.length === 0}
-        className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-background disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="rounded-md border border-accent/40 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/10 disabled:opacity-40"
       >
         Exportar Excel
       </button>
       <button
         onClick={exportPdf}
         disabled={summary.length === 0}
-        className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-background disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="rounded-md border border-accent/40 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/10 disabled:opacity-40"
       >
         Exportar PDF
       </button>

@@ -18,14 +18,14 @@ export default async function AuditsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Auditorías</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-foreground">Auditorías</h1>
 
       {canStart && <StartAuditForm />}
 
-      <h2 className="mb-3 text-lg font-medium text-zinc-900 dark:text-zinc-50">Historial de auditorías</h2>
+      <h2 className="mb-3 text-lg font-medium text-foreground">Historial de auditorías</h2>
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
         <table className="w-full text-sm">
-          <thead className="bg-background text-left text-zinc-500 dark:text-zinc-400">
+          <thead className="bg-background text-left text-foreground/60">
             <tr>
               <th className="px-4 py-2 font-medium">Fecha inicio</th>
               <th className="px-4 py-2 font-medium">Fecha cierre</th>
@@ -38,7 +38,7 @@ export default async function AuditsPage() {
           <tbody>
             {auditList.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-zinc-400">
+                <td colSpan={6} className="px-4 py-6 text-center text-foreground/40">
                   Todavía no se inició ninguna auditoría.
                 </td>
               </tr>
@@ -47,10 +47,10 @@ export default async function AuditsPage() {
               const isOpen = !a.ended_at;
               return (
                 <tr key={a.id} className="border-t border-zinc-100 hover:bg-background dark:border-zinc-800">
-                  <td className="px-4 py-2 font-medium text-zinc-900 dark:text-zinc-50">
+                  <td className="px-4 py-2 font-medium text-foreground">
                     {new Date(a.started_at).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })}
                   </td>
-                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">
+                  <td className="px-4 py-2 text-foreground/60">
                     {a.ended_at
                       ? new Date(a.ended_at).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' })
                       : '—'}
@@ -66,8 +66,8 @@ export default async function AuditsPage() {
                       {isOpen ? 'En curso' : 'Cerrada'}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{a.profiles?.full_name ?? '—'}</td>
-                  <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{a.note ?? '—'}</td>
+                  <td className="px-4 py-2 text-foreground/60">{a.profiles?.full_name ?? '—'}</td>
+                  <td className="px-4 py-2 text-foreground/60">{a.note ?? '—'}</td>
                   <td className="px-4 py-2">
                     <Link href={`/audits/${a.id}`} className="font-medium text-accent hover:underline">
                       Ver detalle

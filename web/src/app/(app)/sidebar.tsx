@@ -73,7 +73,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
           CS
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">Control de Stock</p>
+          <p className="truncate text-sm font-semibold text-foreground">Control de Stock</p>
         </div>
       </div>
 
@@ -87,7 +87,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-accent/10 text-accent'
-                  : 'text-zinc-600 hover:bg-background hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
+                  : 'text-foreground/70 hover:bg-background hover:text-foreground'
               }`}
             >
               <svg
@@ -107,8 +107,8 @@ export function Sidebar({ profile }: { profile: Profile }) {
       </nav>
 
       <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
-        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">{profile.full_name}</p>
-        <p className="mb-3 text-xs capitalize text-zinc-500 dark:text-zinc-400">{profile.role}</p>
+        <p className="truncate text-sm font-medium text-foreground">{profile.full_name}</p>
+        <p className="mb-3 text-xs capitalize text-foreground/60">{profile.role}</p>
         <LogoutButton />
       </div>
     </aside>

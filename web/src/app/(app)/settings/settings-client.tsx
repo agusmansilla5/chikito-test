@@ -46,21 +46,23 @@ function applyColors(colors: ThemeColors | null) {
   const html = document.documentElement;
   if (colors) {
     html.style.setProperty('--background', colors.background);
-    html.style.setProperty('--surface', colors.surface);
+    html.style.setProperty('--surface', colors.background);
+    html.style.setProperty('--foreground', colors.text);
     html.style.setProperty('--accent', colors.accent);
     html.style.setProperty('--accent-foreground', contrastForeground(colors.accent));
   } else {
     html.style.removeProperty('--background');
     html.style.removeProperty('--surface');
+    html.style.removeProperty('--foreground');
     html.style.removeProperty('--accent');
     html.style.removeProperty('--accent-foreground');
   }
 }
 
 const FIELDS: { key: keyof ThemeColors; label: string; hint: string }[] = [
-  { key: 'background', label: 'Color de fondo', hint: 'El fondo general de la página, detrás de las casillas.' },
-  { key: 'surface', label: 'Color de las casillas', hint: 'Tarjetas, tablas y recuadros de contenido.' },
-  { key: 'accent', label: 'Color de acento', hint: 'Botones, links y estados activos en toda la app.' },
+  { key: 'background', label: 'Color de fondo', hint: 'El fondo general de la página y de las casillas/tarjetas.' },
+  { key: 'accent', label: 'Color de casillas', hint: 'Botones, links y estados activos en toda la app.' },
+  { key: 'text', label: 'Color de las letras', hint: 'El color del texto en toda la app.' },
 ];
 
 export function SettingsClient() {
@@ -133,15 +135,15 @@ export function SettingsClient() {
   return (
     <div className="max-w-xl">
       <section className="mb-8 rounded-xl border border-zinc-200 bg-surface p-5 shadow-sm dark:border-zinc-800">
-        <h2 className="mb-1 font-semibold text-zinc-900 dark:text-zinc-50">Modo</h2>
-        <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">Elegí entre modo claro y modo nocturno.</p>
+        <h2 className="mb-1 font-semibold text-foreground">Modo</h2>
+        <p className="mb-4 text-sm text-foreground/60">Elegí entre modo claro y modo nocturno.</p>
         <div className="flex gap-2">
           <button
             onClick={() => handleModeChange('light')}
             className={`flex-1 rounded-md border px-4 py-2 text-sm font-medium ${
               mode === 'light'
                 ? 'border-accent bg-accent text-accent-foreground'
-                : 'border-zinc-300 text-zinc-700 hover:bg-background dark:border-zinc-700 dark:text-zinc-300'
+                : 'border-zinc-300 text-foreground/70 hover:bg-background dark:border-zinc-700'
             }`}
           >
             ☀️ Claro
@@ -151,7 +153,7 @@ export function SettingsClient() {
             className={`flex-1 rounded-md border px-4 py-2 text-sm font-medium ${
               mode === 'dark'
                 ? 'border-accent bg-accent text-accent-foreground'
-                : 'border-zinc-300 text-zinc-700 hover:bg-background dark:border-zinc-700 dark:text-zinc-300'
+                : 'border-zinc-300 text-foreground/70 hover:bg-background dark:border-zinc-700'
             }`}
           >
             🌙 Oscuro
@@ -162,16 +164,13 @@ export function SettingsClient() {
       <section className="rounded-xl border border-zinc-200 bg-surface p-5 shadow-sm dark:border-zinc-800">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">Colores</h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <h2 className="font-semibold text-foreground">Colores</h2>
+            <p className="text-sm text-foreground/60">
               Personalizá los colores del modo {mode === 'light' ? 'claro' : 'oscuro'} en formato HEX.
             </p>
           </div>
           {hasOverrideForMode && (
-            <button
-              onClick={handleReset}
-              className="text-sm font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400"
-            >
+            <button onClick={handleReset} className="text-sm font-medium text-foreground/60 hover:text-red-600">
               Restablecer
             </button>
           )}
@@ -183,10 +182,8 @@ export function SettingsClient() {
             const error = hexErrors[field.key];
             return (
               <div key={field.key}>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  {field.label}
-                </label>
-                <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">{field.hint}</p>
+                <label className="mb-1 block text-sm font-medium text-foreground/80">{field.label}</label>
+                <p className="mb-2 text-xs text-foreground/60">{field.hint}</p>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -200,7 +197,7 @@ export function SettingsClient() {
                     value={value}
                     onChange={(e) => handleColorChange(field.key, e.target.value)}
                     placeholder="#ffffff"
-                    className="w-32 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-accent focus:outline-none dark:border-zinc-700 dark:text-zinc-50"
+                    className="w-32 rounded-md border border-zinc-300 px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none dark:border-zinc-700"
                   />
                   {error && <p className="text-xs text-red-600">{error}</p>}
                 </div>

@@ -16,7 +16,7 @@ export default async function ProductsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Productos</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-foreground">Productos</h1>
 
       <ProductsClient
         initialProducts={(products as Product[]) ?? []}
