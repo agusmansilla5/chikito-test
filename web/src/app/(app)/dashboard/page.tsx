@@ -12,6 +12,7 @@ import { MovementsChart } from './movements-chart';
 import { CollapsibleSection } from './collapsible-section';
 import { ProductsClient } from '../products/products-client';
 import { StartAuditForm } from '../audits/audits-client';
+import { DeleteAuditButton } from '../audits/delete-button';
 import { MovementClient } from '../movement/movement-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
@@ -359,9 +360,10 @@ export default async function DashboardPage({
                         <td className="px-4 py-2 text-foreground">{a.profiles?.full_name ?? '—'}</td>
                         <td className="px-4 py-2 text-foreground">{a.note ?? '—'}</td>
                         <td className="px-4 py-2">
-                          <Link href={`/audits/${a.id}`} className="font-medium text-accent hover:underline">
+                          <Link href={`/audits/${a.id}`} className="mr-3 font-medium text-accent hover:underline">
                             Ver detalle
                           </Link>
+                          {profile.role === 'admin' && <DeleteAuditButton auditId={a.id} />}
                         </td>
                       </tr>
                     );

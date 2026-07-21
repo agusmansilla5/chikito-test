@@ -5,6 +5,7 @@ import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/l
 import { formatDateTime } from '@/lib/date';
 import type { Audit } from '@/lib/types';
 import { StartAuditForm } from './audits-client';
+import { DeleteAuditButton } from './delete-button';
 
 type AuditWithLocation = Audit & { locations?: { name: string } | null };
 
@@ -104,9 +105,10 @@ export default async function AuditsPage({
                   <td className="px-4 py-2 text-foreground">{a.profiles?.full_name ?? '—'}</td>
                   <td className="px-4 py-2 text-foreground">{a.note ?? '—'}</td>
                   <td className="px-4 py-2">
-                    <Link href={`/audits/${a.id}`} className="font-medium text-accent hover:underline">
+                    <Link href={`/audits/${a.id}`} className="mr-3 font-medium text-accent hover:underline">
                       Ver detalle
                     </Link>
+                    {profile.role === 'admin' && <DeleteAuditButton auditId={a.id} />}
                   </td>
                 </tr>
               );

@@ -49,3 +49,23 @@ export async function closeAudit(auditId: string) {
   revalidatePath(`/audits/${auditId}`);
   return { error: null };
 }
+
+// Solo admin - reforzado acá además de en la policy de RLS, para dar un
+// mensaje claro en vez de que la fila simplemente no se borre en silencio.
+export async function deleteAudit(auditId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'No autenticado.' };
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  if (profile?.role !== 'admin') return { error: 'Solo un admin puede eliminar auditorías del historial.' };
+
+  const { error } = await supabase.from('audits').delete().eq('id', auditId);
+  if (error) return { error: error.message };
+
+  revalidatePath('/audits');
+  revalidatePath('/dashboard');
+  return { error: null };
+}
