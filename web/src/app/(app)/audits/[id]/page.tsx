@@ -43,7 +43,9 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
       : { data: [] };
   const stockByProduct = new Map((stockRows ?? []).map((r) => [r.product_id, r]));
   const isOpen = !auditData.ended_at;
-  const canClose = profile.role === 'admin' || profile.role === 'auditor';
+  // La policy de RLS ahora exige lo mismo: admin gestiona cualquier auditoría,
+  // auditor solo las que inició él mismo (ver restrict_audit_close_to_owner.sql).
+  const canClose = profile.role === 'admin' || (profile.role === 'auditor' && auditData.started_by === profile.id);
 
   const summaryMap = new Map<
     string,

@@ -36,6 +36,7 @@ export type Audit = {
   ended_at: string | null;
   note: string | null;
   location_id: string;
+  started_by: string;
   profiles?: { full_name: string } | null;
 };
 
