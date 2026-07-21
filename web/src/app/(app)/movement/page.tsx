@@ -64,6 +64,18 @@ export default async function MovementPage() {
     min_stock: p.product_stock[0]?.min_stock ?? 0,
   }));
 
+  if (!openAudit) {
+    return (
+      <div>
+        <h1 className="mb-2 text-2xl font-semibold text-foreground">Registrar movimiento</h1>
+        <p className="text-sm text-foreground">
+          Para cargar productos primero tenés que iniciar una auditoría en este local. Podés hacerlo desde el Panel
+          de control, en el desplegable de Auditorías.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 className="mb-6 text-2xl font-semibold text-foreground">Registrar movimiento</h1>
@@ -71,7 +83,7 @@ export default async function MovementPage() {
         initialProducts={products}
         initialCategories={(categories as Category[]) ?? []}
         initialAreas={(areas as Area[]) ?? []}
-        openAuditNote={openAudit ? (openAudit.note ?? null) : undefined}
+        openAuditNote={openAudit.note ?? null}
       />
     </div>
   );

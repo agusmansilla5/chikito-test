@@ -12,6 +12,7 @@ import { MovementsChart } from './movements-chart';
 import { CollapsibleSection } from './collapsible-section';
 import { ProductsClient } from '../products/products-client';
 import { StartAuditForm } from '../audits/audits-client';
+import { MovementClient } from '../movement/movement-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
 type StockRow = { product_id: string; quantity: number; min_stock: number };
@@ -106,22 +107,33 @@ export default async function DashboardPage({
   let dashboardAreas: Area[] = [];
   let auditList: (Audit & { locations?: { name: string } | null })[] = [];
   let auditsTotalPages = 1;
+  let openAudit: { id: string; note: string | null } | null = null;
 
   if (!isAllLocations && locationValue) {
-    const [{ data: categoriesData }, { data: areasData }, { data: audits, count }] = await Promise.all([
-      supabase.from('categories').select('*').order('name'),
-      supabase.from('areas').select('*').order('name'),
-      supabase
-        .from('audits')
-        .select('*, profiles(full_name)', { count: 'exact' })
-        .eq('location_id', locationValue)
-        .order('started_at', { ascending: false })
-        .range(auditsFrom, auditsTo),
-    ]);
+    const [{ data: categoriesData }, { data: areasData }, { data: audits, count }, { data: openAuditData }] =
+      await Promise.all([
+        supabase.from('categories').select('*').order('name'),
+        supabase.from('areas').select('*').order('name'),
+        supabase
+          .from('audits')
+          .select('*, profiles(full_name)', { count: 'exact' })
+          .eq('location_id', locationValue)
+          .order('started_at', { ascending: false })
+          .range(auditsFrom, auditsTo),
+        supabase
+          .from('audits')
+          .select('id, note')
+          .eq('location_id', locationValue)
+          .is('ended_at', null)
+          .order('started_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
     dashboardCategories = (categoriesData as Category[]) ?? [];
     dashboardAreas = (areasData as Area[]) ?? [];
     auditList = (audits as (Audit & { locations?: { name: string } | null })[]) ?? [];
     auditsTotalPages = Math.max(1, Math.ceil((count ?? 0) / AUDITS_PAGE_SIZE));
+    openAudit = openAuditData ?? null;
   }
 
   const canEditProducts = (profile.role === 'admin' || profile.role === 'auditor') && !isAllLocations;
@@ -291,8 +303,20 @@ export default async function DashboardPage({
             />
           </CollapsibleSection>
 
-          <CollapsibleSection title="Auditorías">
-            {canStartAudit && <StartAuditForm />}
+          <CollapsibleSection title="Auditorías" defaultOpen={Boolean(openAudit)}>
+            {canStartAudit && !openAudit && <StartAuditForm />}
+
+            {openAudit && (
+              <div className="mb-8">
+                <h3 className="mb-3 text-base font-medium text-foreground">Cargar productos (auditoría en curso)</h3>
+                <MovementClient
+                  initialProducts={productList}
+                  initialCategories={dashboardCategories}
+                  initialAreas={dashboardAreas}
+                  openAuditNote={openAudit.note}
+                />
+              </div>
+            )}
 
             <h3 className="mb-3 text-base font-medium text-foreground">Historial de auditorías</h3>
             <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">

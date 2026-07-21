@@ -24,6 +24,10 @@ export async function registerMovement(productId: string, type: MovementType, qu
     .limit(1)
     .maybeSingle();
 
+  // Todo movimiento tiene que quedar dentro de una auditoría - no se cargan
+  // productos sueltos fuera de un conteo en curso.
+  if (!openAudit) return { error: 'Primero iniciá una auditoría en este local para poder cargar productos.' };
+
   const { error } = await supabase.from('stock_movements').insert({
     product_id: productId,
     type,
@@ -31,7 +35,7 @@ export async function registerMovement(productId: string, type: MovementType, qu
     note,
     created_by: user.id,
     location_id: locationId,
-    audit_id: openAudit?.id ?? null,
+    audit_id: openAudit.id,
   });
   if (error) return { error: error.message };
 
