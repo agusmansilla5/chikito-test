@@ -4,7 +4,8 @@ import { getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
 import type { Product, Category, Area } from '@/lib/types';
 import { ImportClient } from './import-client';
 
-type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
+type ProductRaw = Product & { categories?: { name: string } | null; areas?: { name: string } | null };
+type StockRow = { product_id: string; quantity: number; min_stock: number };
 
 export default async function ImportStockPage() {
   const profile = await requireProfile();
@@ -33,23 +34,24 @@ export default async function ImportStockPage() {
 
   const supabase = await createClient();
 
-  const [{ data: categories }, { data: areas }, { data: productsRaw }] = await Promise.all([
+  // Trae TODOS los productos activos (no solo los que ya tienen fila de stock
+  // en este local): un producto puede existir globalmente por haberse creado
+  // en otro local y todavía no tener conteo acá, y el importador tiene que
+  // reconocerlo igual en vez de tratarlo como si fuera nuevo.
+  const [{ data: categories }, { data: areas }, { data: productsRaw }, { data: stockRows }] = await Promise.all([
     supabase.from('categories').select('*').order('name'),
     supabase.from('areas').select('*').order('name'),
+    supabase.from('products').select('*, categories(name), areas(name)').eq('active', true).order('name'),
     locationValue
-      ? supabase
-          .from('products')
-          .select('*, categories(name), areas(name), product_stock!inner(quantity, min_stock)')
-          .eq('active', true)
-          .eq('product_stock.location_id', locationValue)
-          .order('name')
-      : Promise.resolve({ data: [] as ProductWithStock[] }),
+      ? supabase.from('product_stock').select('product_id, quantity, min_stock').eq('location_id', locationValue)
+      : Promise.resolve({ data: [] as StockRow[] }),
   ]);
 
-  const products: Product[] = ((productsRaw as ProductWithStock[]) ?? []).map((p) => ({
+  const stockByProduct = new Map((stockRows as StockRow[] | null)?.map((r) => [r.product_id, r]));
+  const products: Product[] = ((productsRaw as ProductRaw[]) ?? []).map((p) => ({
     ...p,
-    quantity: p.product_stock[0]?.quantity ?? 0,
-    min_stock: p.product_stock[0]?.min_stock ?? 0,
+    quantity: stockByProduct.get(p.id)?.quantity ?? 0,
+    min_stock: stockByProduct.get(p.id)?.min_stock ?? 0,
   }));
 
   return (
