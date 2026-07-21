@@ -316,9 +316,9 @@ export function ProductsClient({
           {canEdit && (
             <Link
               href="/products/import"
-              className="rounded-md border border-accent/40 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
+              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
             >
-              Importar conteo
+              📥 Importar conteo
             </Link>
           )}
           {canEdit && (
