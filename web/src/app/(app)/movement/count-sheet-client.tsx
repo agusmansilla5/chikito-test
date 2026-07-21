@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/types';
 import { submitAuditCount } from './actions';
 
-type RowState = { ingresos: string; final: string };
+type RowState = { inicial: string; ingresos: string; final: string };
 
 export function CountSheetClient({ products }: { products: Product[] }) {
   const router = useRouter();
@@ -25,10 +25,11 @@ export function CountSheetClient({ products }: { products: Product[] }) {
     const payload = Object.entries(rows)
       .map(([productId, r]) => ({
         productId,
+        inicial: r.inicial?.trim() ? Number(r.inicial) : null,
         ingresos: r.ingresos?.trim() ? Number(r.ingresos) : null,
         final: r.final?.trim() ? Number(r.final) : null,
       }))
-      .filter((r) => r.ingresos != null || r.final != null);
+      .filter((r) => r.inicial != null || r.ingresos != null || r.final != null);
 
     if (payload.length === 0) {
       setError('No cargaste ningún cambio.');
@@ -65,15 +66,23 @@ export function CountSheetClient({ products }: { products: Product[] }) {
           </thead>
           <tbody>
             {products.map((p) => {
-              const row = rows[p.id] ?? { ingresos: '', final: '' };
+              const row = rows[p.id] ?? { inicial: '', ingresos: '', final: '' };
               return (
                 <tr key={p.id} className="border-t border-zinc-100 dark:border-zinc-800">
                   <td className="px-4 py-2 font-medium text-foreground">{p.name}</td>
-                  <td className="px-4 py-2 text-foreground">{p.quantity}</td>
                   <td className="px-4 py-2">
                     <input
                       type="number"
-                      placeholder="—"
+                      placeholder="0"
+                      value={row.inicial}
+                      onChange={(e) => update(p.id, 'inicial', e.target.value)}
+                      className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input
+                      type="number"
+                      placeholder="0"
                       value={row.ingresos}
                       onChange={(e) => update(p.id, 'ingresos', e.target.value)}
                       className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"
@@ -82,7 +91,7 @@ export function CountSheetClient({ products }: { products: Product[] }) {
                   <td className="px-4 py-2">
                     <input
                       type="number"
-                      placeholder="—"
+                      placeholder="0"
                       value={row.final}
                       onChange={(e) => update(p.id, 'final', e.target.value)}
                       className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"

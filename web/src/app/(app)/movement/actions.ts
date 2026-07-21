@@ -46,12 +46,14 @@ export async function registerMovement(productId: string, type: MovementType, qu
   return { error: null };
 }
 
-export type CountRow = { productId: string; ingresos: number | null; final: number | null };
+export type CountRow = { productId: string; inicial: number | null; ingresos: number | null; final: number | null };
 
-// Planilla de conteo: por cada fila con Ingresos y/o Final cargado, arma los
-// movimientos correspondientes. Ingresos queda como su propia entrada (para
-// trazabilidad); Final se compara contra "inicial + ingresos" y la
-// diferencia (si la hay) queda como ajuste de auditoría.
+// Planilla de conteo: Inicial/Ingresos/Final son todos editables y libres,
+// no dependen de lo que el sistema ya tenía cargado (que puede estar
+// desactualizado). Por cada fila con algún campo cargado, se calcula el
+// stock "objetivo" (lo que debería quedar según lo escrito) y se compara
+// contra el stock real actual: la diferencia, si la hay, es un único
+// movimiento de ajuste.
 export async function submitAuditCount(rows: CountRow[]) {
   if (rows.length === 0) return { error: 'No hay filas para guardar.', saved: 0 };
 
@@ -95,32 +97,24 @@ export async function submitAuditCount(rows: CountRow[]) {
   }[] = [];
 
   for (const row of rows) {
-    let expected = currentByProduct.get(row.productId) ?? 0;
-    if (row.ingresos && row.ingresos > 0) {
+    if (row.inicial == null && row.ingresos == null && row.final == null) continue;
+
+    const current = currentByProduct.get(row.productId) ?? 0;
+    const base = row.inicial ?? current;
+    const afterIngresos = base + (row.ingresos ?? 0);
+    const target = row.final ?? afterIngresos;
+
+    const diff = target - current;
+    if (diff !== 0) {
       movements.push({
         product_id: row.productId,
-        type: 'entrada',
-        quantity: row.ingresos,
-        note: 'Ingreso durante el conteo',
+        type: diff > 0 ? 'entrada' : 'salida',
+        quantity: Math.abs(diff),
+        note: 'Conteo de auditoría',
         created_by: user.id,
         location_id: locationId,
         audit_id: openAudit.id,
       });
-      expected += row.ingresos;
-    }
-    if (row.final != null) {
-      const diff = row.final - expected;
-      if (diff !== 0) {
-        movements.push({
-          product_id: row.productId,
-          type: diff > 0 ? 'entrada' : 'salida',
-          quantity: Math.abs(diff),
-          note: 'Ajuste de auditoría (conteo)',
-          created_by: user.id,
-          location_id: locationId,
-          audit_id: openAudit.id,
-        });
-      }
     }
   }
 
