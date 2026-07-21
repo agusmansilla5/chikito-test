@@ -2,10 +2,13 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { formatDate, formatDateTime } from '@/lib/date';
-import type { Audit, StockMovement } from '@/lib/types';
+import type { Audit, StockMovement, Product, Category, Area } from '@/lib/types';
 import { CloseAuditButton } from '../close-button';
 import { NoteEditor } from '../note-editor';
 import { AuditExport } from '../audit-export';
+import { MovementClient } from '../../movement/movement-client';
+
+type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
 
 export default async function AuditDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -46,6 +49,33 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
   // La policy de RLS ahora exige lo mismo: admin gestiona cualquier auditoría,
   // auditor solo las que inició él mismo (ver restrict_audit_close_to_owner.sql).
   const canClose = profile.role === 'admin' || (profile.role === 'auditor' && auditData.started_by === profile.id);
+  // Cargar productos no depende de quién inició la auditoría - cualquier
+  // admin/auditor puede ir sumando el conteo mientras esté en curso.
+  const canLoadProducts = profile.role === 'admin' || profile.role === 'auditor';
+
+  let auditProducts: Product[] = [];
+  let auditCategories: Category[] = [];
+  let auditAreas: Area[] = [];
+
+  if (isOpen && canLoadProducts) {
+    const [{ data: productsRaw }, { data: categoriesData }, { data: areasData }] = await Promise.all([
+      supabase
+        .from('products')
+        .select('*, categories(name), areas(name), product_stock!inner(quantity, min_stock)')
+        .eq('active', true)
+        .eq('product_stock.location_id', auditData.location_id)
+        .order('name'),
+      supabase.from('categories').select('*').order('name'),
+      supabase.from('areas').select('*').order('name'),
+    ]);
+    auditProducts = ((productsRaw as ProductWithStock[]) ?? []).map((p) => ({
+      ...p,
+      quantity: p.product_stock[0]?.quantity ?? 0,
+      min_stock: p.product_stock[0]?.min_stock ?? 0,
+    }));
+    auditCategories = (categoriesData as Category[]) ?? [];
+    auditAreas = (areasData as Area[]) ?? [];
+  }
 
   const summaryMap = new Map<
     string,
@@ -110,6 +140,18 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           {isOpen && canClose && <CloseAuditButton auditId={auditData.id} />}
         </div>
       </div>
+
+      {isOpen && canLoadProducts && (
+        <div className="mb-8">
+          <h2 className="mb-3 text-lg font-medium text-foreground">Cargar productos</h2>
+          <MovementClient
+            initialProducts={auditProducts}
+            initialCategories={auditCategories}
+            initialAreas={auditAreas}
+            openAuditNote={auditData.note}
+          />
+        </div>
+      )}
 
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-lg font-medium text-foreground">Productos cargados ({summary.length})</h2>
