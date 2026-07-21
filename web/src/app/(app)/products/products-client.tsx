@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { Product, Category, Area } from '@/lib/types';
 import { findSimilarProducts } from '@/lib/matching';
@@ -308,6 +309,14 @@ export function ProductsClient({
         </select>
         <div className="ml-auto flex items-center gap-3">
           <CountTemplateExport products={filtered} />
+          {canEdit && (
+            <Link
+              href="/products/import"
+              className="rounded-md border border-accent/40 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
+            >
+              Importar conteo
+            </Link>
+          )}
           {canEdit && (
             <button
               onClick={openCreate}
