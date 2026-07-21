@@ -203,7 +203,9 @@ insert into products (name, category_id)
 select pd.name, c.id
 from product_data pd
 join categories c on c.name = pd.category_name
-on conflict ((lower(btrim(name)))) do nothing;
+where not exists (
+  select 1 from products p where lower(btrim(p.name)) = lower(btrim(pd.name))
+);
 
 with product_data (name, category_name, quantity) as (
   values
