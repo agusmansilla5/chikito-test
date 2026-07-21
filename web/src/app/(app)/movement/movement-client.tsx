@@ -1,26 +1,30 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { Product, Category, MovementType } from '@/lib/types';
+import type { Product, Category, Area, MovementType } from '@/lib/types';
 import { findSimilarProducts } from '@/lib/matching';
-import { createProduct, createCategory } from '../products/actions';
+import { createProduct, createCategory, createArea } from '../products/actions';
 import { registerMovement } from './actions';
 import { BarcodeScannerModal } from './barcode-scanner-modal';
 
 const SIN_RUBRO = 'Sin rubro';
+const SIN_AREA = 'Sin área';
 const looksLikeBarcode = (text: string) => /^\d{6,}$/.test(text.trim());
 
 export function MovementClient({
   initialProducts,
   initialCategories,
+  initialAreas,
   openAuditNote,
 }: {
   initialProducts: Product[];
   initialCategories: Category[];
+  initialAreas: Area[];
   openAuditNote: string | null | undefined;
 }) {
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
+  const [areas, setAreas] = useState(initialAreas);
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [type, setType] = useState<MovementType>('entrada');
@@ -36,6 +40,8 @@ export function MovementClient({
   const [newMinStock, setNewMinStock] = useState('0');
   const [newCategoryId, setNewCategoryId] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newAreaId, setNewAreaId] = useState<string | null>(null);
+  const [newAreaName, setNewAreaName] = useState('');
 
   const similarProducts = useMemo(
     () => (creating ? findSimilarProducts(newName, products) : []),
@@ -62,6 +68,7 @@ export function MovementClient({
     setNewBarcode(looksLikeBarcode(trimmed) ? trimmed : '');
     setNewMinStock('0');
     setNewCategoryId(null);
+    setNewAreaId(null);
     setSelectedProduct(null);
     setCreating(true);
     setError(null);
@@ -79,6 +86,7 @@ export function MovementClient({
         setNewBarcode(code);
         setNewMinStock('0');
         setNewCategoryId(null);
+        setNewAreaId(null);
         setSelectedProduct(null);
         setCreating(true);
       }
@@ -99,6 +107,19 @@ export function MovementClient({
     setNewCategoryName('');
   }
 
+  async function handleCreateArea() {
+    const trimmed = newAreaName.trim();
+    if (!trimmed) return;
+    const result = await createArea(trimmed);
+    if (result.error || !result.area) {
+      setError(result.error);
+      return;
+    }
+    setAreas((prev) => [...prev, result.area].sort((a, b) => a.name.localeCompare(b.name)));
+    setNewAreaId(result.area.id);
+    setNewAreaName('');
+  }
+
   async function handleCreateProduct() {
     setError(null);
     if (!newName.trim()) {
@@ -112,6 +133,7 @@ export function MovementClient({
         barcode: newBarcode.trim() || null,
         min_stock: Number(newMinStock) || 0,
         category_id: newCategoryId,
+        area_id: newAreaId,
         cost_price: null,
         sale_price: null,
       },
@@ -304,6 +326,48 @@ export function MovementClient({
             />
             <button
               onClick={handleCreateCategory}
+              className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
+            >
+              + Crear
+            </button>
+          </div>
+
+          <label className="mb-1 block text-sm font-medium text-foreground">Área (opcional)</label>
+          <div className="mb-2 flex flex-wrap gap-2">
+            <button
+              onClick={() => setNewAreaId(null)}
+              className={`rounded-full border px-3 py-1.5 text-sm ${
+                newAreaId === null
+                  ? 'border-accent bg-accent text-accent-foreground'
+                  : 'border-zinc-300 dark:border-zinc-700 text-foreground hover:bg-background dark:hover:bg-zinc-800'
+              }`}
+            >
+              {SIN_AREA}
+            </button>
+            {areas.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => setNewAreaId(a.id)}
+                className={`rounded-full border px-3 py-1.5 text-sm ${
+                  newAreaId === a.id
+                    ? 'border-accent bg-accent text-accent-foreground'
+                    : 'border-zinc-300 dark:border-zinc-700 text-foreground hover:bg-background dark:hover:bg-zinc-800'
+                }`}
+              >
+                {a.name}
+              </button>
+            ))}
+          </div>
+          <div className="mb-4 flex gap-2">
+            <input
+              type="text"
+              placeholder="Nueva área (ej: Barra 1)"
+              value={newAreaName}
+              onChange={(e) => setNewAreaName(e.target.value)}
+              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+            />
+            <button
+              onClick={handleCreateArea}
               className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
             >
               + Crear

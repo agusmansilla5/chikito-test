@@ -9,6 +9,7 @@ export type ProductInput = {
   barcode: string | null;
   min_stock: number;
   category_id: string | null;
+  area_id: string | null;
   cost_price: number | null;
   sale_price: number | null;
 };
@@ -95,6 +96,30 @@ export async function deleteProduct(id: string) {
   revalidatePath('/products');
   revalidatePath('/dashboard');
   revalidatePath('/movement');
+  return { error: null };
+}
+
+export async function createArea(name: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('areas').insert({ name }).select().single();
+  if (error) return { error: error.code === '23505' ? 'Ya existe esa área.' : error.message, area: null };
+  revalidatePath('/products');
+  return { error: null, area: data };
+}
+
+export async function renameArea(id: string, name: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('areas').update({ name }).eq('id', id);
+  if (error) return { error: error.code === '23505' ? 'Ya existe esa área.' : error.message };
+  revalidatePath('/products');
+  return { error: null };
+}
+
+export async function deleteArea(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('areas').delete().eq('id', id);
+  if (error) return { error: error.message };
+  revalidatePath('/products');
   return { error: null };
 }
 

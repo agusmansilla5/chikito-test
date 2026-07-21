@@ -1,9 +1,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { Product, Category } from '@/lib/types';
+import type { Product, Category, Area } from '@/lib/types';
 import { findSimilarProducts } from '@/lib/matching';
-import { createProduct, updateProduct, deleteProduct, createCategory, deleteCategory } from './actions';
+import {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  createCategory,
+  deleteCategory,
+  createArea,
+  deleteArea,
+} from './actions';
 
 type FormState = {
   id: string | null;
@@ -12,6 +20,7 @@ type FormState = {
   min_stock: string;
   initial_quantity: string;
   category_id: string | null;
+  area_id: string | null;
   cost_price: string;
   sale_price: string;
 };
@@ -30,10 +39,12 @@ const EMPTY_FORM: FormState = {
   min_stock: '0',
   initial_quantity: '0',
   category_id: null,
+  area_id: null,
   cost_price: '',
   sale_price: '',
 };
 const SIN_RUBRO = 'Sin rubro';
+const SIN_AREA = 'Sin área';
 const PAGE_SIZE = 30;
 
 function compareProducts(a: Product, b: Product, key: SortKey, dir: 'asc' | 'desc') {
@@ -47,22 +58,27 @@ function compareProducts(a: Product, b: Product, key: SortKey, dir: 'asc' | 'des
 export function ProductsClient({
   initialProducts,
   initialCategories,
+  initialAreas,
   canEdit,
 }: {
   initialProducts: Product[];
   initialCategories: Category[];
+  initialAreas: Area[];
   canEdit: boolean;
 }) {
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
+  const [areas, setAreas] = useState(initialAreas);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
+  const [areaFilter, setAreaFilter] = useState<string | 'all'>('all');
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newAreaName, setNewAreaName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -77,9 +93,10 @@ export function ProductsClient({
       const matchesSearch =
         !term || p.name.toLowerCase().includes(term) || (p.barcode ?? '').toLowerCase().includes(term);
       const matchesCategory = categoryFilter === 'all' || (p.category_id ?? 'none') === categoryFilter;
-      return matchesSearch && matchesCategory;
+      const matchesArea = areaFilter === 'all' || (p.area_id ?? 'none') === areaFilter;
+      return matchesSearch && matchesCategory && matchesArea;
     });
-  }, [products, search, categoryFilter]);
+  }, [products, search, categoryFilter, areaFilter]);
 
   const allGroups = useMemo(() => {
     const itemSortKey: SortKey = sortKey === 'category' ? 'name' : sortKey;
@@ -146,6 +163,7 @@ export function ProductsClient({
       min_stock: String(p.min_stock),
       initial_quantity: '0',
       category_id: p.category_id,
+      area_id: p.area_id,
       cost_price: p.cost_price != null ? String(p.cost_price) : '',
       sale_price: p.sale_price != null ? String(p.sale_price) : '',
     });
@@ -164,6 +182,7 @@ export function ProductsClient({
       barcode: form.barcode.trim() || null,
       min_stock: Number(form.min_stock) || 0,
       category_id: form.category_id,
+      area_id: form.area_id,
       cost_price: form.cost_price.trim() ? Number(form.cost_price) : null,
       sale_price: form.sale_price.trim() ? Number(form.sale_price) : null,
     };
@@ -216,6 +235,31 @@ export function ProductsClient({
     if (categoryFilter === c.id) setCategoryFilter('all');
   }
 
+  async function handleCreateArea() {
+    const trimmed = newAreaName.trim();
+    if (!trimmed) return;
+    const result = await createArea(trimmed);
+    if (result.error || !result.area) {
+      setError(result.error);
+      return;
+    }
+    setAreas((prev) => [...prev, result.area].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, area_id: result.area.id }));
+    setNewAreaName('');
+  }
+
+  async function handleDeleteArea(a: Area) {
+    if (!confirm(`¿Eliminar el área "${a.name}"? Los productos quedarán sin área.`)) return;
+    const result = await deleteArea(a.id);
+    if (result.error) {
+      alert(result.error);
+      return;
+    }
+    setAreas((prev) => prev.filter((x) => x.id !== a.id));
+    setProducts((prev) => prev.map((p) => (p.area_id === a.id ? { ...p, area_id: null, areas: null } : p)));
+    if (areaFilter === a.id) setAreaFilter('all');
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -242,6 +286,22 @@ export function ProductsClient({
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={areaFilter}
+          onChange={(e) => {
+            setAreaFilter(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+        >
+          <option value="all">Todas las áreas</option>
+          <option value="none">{SIN_AREA}</option>
+          {areas.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}
             </option>
           ))}
         </select>
@@ -277,6 +337,7 @@ export function ProductsClient({
               >
                 Rubro{sortArrow('category')}
               </th>
+              <th className="px-4 py-2 font-medium">Área</th>
               <th
                 className="cursor-pointer select-none px-4 py-2 font-medium hover:text-foreground"
                 onClick={() => toggleSort('quantity')}
@@ -291,7 +352,7 @@ export function ProductsClient({
           {filtered.length === 0 && (
             <tbody>
               <tr>
-                <td colSpan={canEdit ? 7 : 6} className="px-4 py-6 text-center text-foreground">
+                <td colSpan={canEdit ? 8 : 7} className="px-4 py-6 text-center text-foreground">
                   No se encontraron productos.
                 </td>
               </tr>
@@ -301,7 +362,7 @@ export function ProductsClient({
             <tbody key={categoryName}>
               <tr className="bg-background">
                 <td
-                  colSpan={canEdit ? 7 : 6}
+                  colSpan={canEdit ? 8 : 7}
                   className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground"
                 >
                   {categoryName}
@@ -312,6 +373,7 @@ export function ProductsClient({
                   <td className="px-4 py-2 font-medium text-foreground">{p.name}</td>
                   <td className="px-4 py-2 text-foreground">{p.barcode ?? '—'}</td>
                   <td className="px-4 py-2 text-foreground">{p.categories?.name ?? SIN_RUBRO}</td>
+                  <td className="px-4 py-2 text-foreground">{p.areas?.name ?? SIN_AREA}</td>
                   <td
                     className={`px-4 py-2 font-semibold ${p.quantity < p.min_stock ? 'text-red-600' : 'text-green-600'}`}
                   >
@@ -367,6 +429,20 @@ export function ProductsClient({
             <span key={c.id} className="flex items-center gap-1 rounded-full bg-background px-2 py-1">
               {c.name}
               <button onClick={() => handleDeleteCategory(c)} className="text-foreground hover:text-red-600">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {areas.length > 0 && canEdit && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-foreground">
+          <span>Áreas:</span>
+          {areas.map((a) => (
+            <span key={a.id} className="flex items-center gap-1 rounded-full bg-background px-2 py-1">
+              {a.name}
+              <button onClick={() => handleDeleteArea(a)} className="text-foreground hover:text-red-600">
                 ×
               </button>
             </span>
@@ -487,6 +563,37 @@ export function ProductsClient({
               />
               <button
                 onClick={handleCreateCategory}
+                className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
+              >
+                + Crear
+              </button>
+            </div>
+
+            <label className="mb-1 block text-sm font-medium text-foreground">
+              Área (cocina, barra, limpieza, depósito...)
+            </label>
+            <select
+              value={form.area_id ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, area_id: e.target.value || null }))}
+              className="mb-2 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+            >
+              <option value="">{SIN_AREA}</option>
+              {areas.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+            <div className="mb-4 flex gap-2">
+              <input
+                type="text"
+                placeholder="Nueva área (ej: Barra 1)"
+                value={newAreaName}
+                onChange={(e) => setNewAreaName(e.target.value)}
+                className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+              />
+              <button
+                onClick={handleCreateArea}
                 className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
               >
                 + Crear

@@ -11,6 +11,11 @@ export type Category = {
   name: string;
 };
 
+export type Area = {
+  id: string;
+  name: string;
+};
+
 export type Location = {
   id: string;
   name: string;
@@ -24,10 +29,12 @@ export type Product = {
   quantity: number;
   min_stock: number;
   category_id: string | null;
+  area_id: string | null;
   active: boolean;
   cost_price: number | null;
   sale_price: number | null;
   categories?: { name: string } | null;
+  areas?: { name: string } | null;
 };
 
 export type Audit = {

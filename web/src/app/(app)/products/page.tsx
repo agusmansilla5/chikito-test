@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
-import type { Product, Category } from '@/lib/types';
+import type { Product, Category, Area } from '@/lib/types';
 import { ProductsClient } from './products-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
@@ -15,13 +15,14 @@ export default async function ProductsPage() {
   const isAllLocations = locationValue === ALL_LOCATIONS_VALUE;
 
   const { data: categories } = await supabase.from('categories').select('*').order('name');
+  const { data: areas } = await supabase.from('areas').select('*').order('name');
 
   let products: Product[] = [];
 
   if (isAllLocations) {
     const { data: productsRaw } = await supabase
       .from('products')
-      .select('*, categories(name)')
+      .select('*, categories(name), areas(name)')
       .eq('active', true)
       .order('name');
     const { data: stockRows } = await supabase.from('product_stock').select('product_id, quantity, min_stock');
@@ -40,7 +41,7 @@ export default async function ProductsPage() {
   } else if (locationValue) {
     const { data: productsRaw } = await supabase
       .from('products')
-      .select('*, categories(name), product_stock!inner(quantity, min_stock)')
+      .select('*, categories(name), areas(name), product_stock!inner(quantity, min_stock)')
       .eq('active', true)
       .eq('product_stock.location_id', locationValue)
       .order('name');
@@ -65,6 +66,7 @@ export default async function ProductsPage() {
       <ProductsClient
         initialProducts={products}
         initialCategories={(categories as Category[]) ?? []}
+        initialAreas={(areas as Area[]) ?? []}
         canEdit={canEdit}
       />
     </div>

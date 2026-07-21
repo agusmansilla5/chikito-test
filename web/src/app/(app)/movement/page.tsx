@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
-import type { Product, Category } from '@/lib/types';
+import type { Product, Category, Area } from '@/lib/types';
 import { MovementClient } from './movement-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
@@ -35,7 +35,7 @@ export default async function MovementPage() {
   const supabase = await createClient();
   const locationId = locationValue;
 
-  const [{ data: productsRaw }, { data: categories }, { data: openAudit }] = await Promise.all([
+  const [{ data: productsRaw }, { data: categories }, { data: areas }, { data: openAudit }] = await Promise.all([
     locationId
       ? supabase
           .from('products')
@@ -45,6 +45,7 @@ export default async function MovementPage() {
           .order('name')
       : Promise.resolve({ data: [] as ProductWithStock[] }),
     supabase.from('categories').select('*').order('name'),
+    supabase.from('areas').select('*').order('name'),
     locationId
       ? supabase
           .from('audits')
@@ -69,6 +70,7 @@ export default async function MovementPage() {
       <MovementClient
         initialProducts={products}
         initialCategories={(categories as Category[]) ?? []}
+        initialAreas={(areas as Area[]) ?? []}
         openAuditNote={openAudit ? (openAudit.note ?? null) : undefined}
       />
     </div>
