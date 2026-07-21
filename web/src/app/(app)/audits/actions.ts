@@ -2,21 +2,22 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { getSelectedLocationId } from '@/lib/location';
 
-export async function startAudit(note: string | null) {
+// El sector se elige explícitamente en el form (StartAuditForm), en vez de
+// depender del local seleccionado en el switcher - así se puede iniciar una
+// auditoría en cualquier sector sin tener que ir a cambiarlo primero.
+export async function startAudit(note: string | null, locationId: string) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: 'No autenticado.' };
-
-  const locationId = await getSelectedLocationId();
-  if (!locationId) return { error: 'No hay ningún local configurado.' };
+  if (!locationId) return { error: 'Elegí un sector.' };
 
   const { error } = await supabase.from('audits').insert({ started_by: user.id, note, location_id: locationId });
   if (error) return { error: error.message };
   revalidatePath('/audits');
+  revalidatePath('/dashboard');
   return { error: null };
 }
 

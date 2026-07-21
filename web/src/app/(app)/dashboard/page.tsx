@@ -305,7 +305,9 @@ export default async function DashboardPage({
           </CollapsibleSection>
 
           <CollapsibleSection title="Auditorías" defaultOpen={Boolean(openAudit)}>
-            {canStartAudit && !openAudit && <StartAuditForm />}
+            {canStartAudit && !openAudit && (
+              <StartAuditForm locations={locations} defaultLocationId={locationValue} />
+            )}
 
             {openAudit && (
               <div className="mb-8">

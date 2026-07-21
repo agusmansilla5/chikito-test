@@ -44,19 +44,19 @@ export default async function AuditsPage({
 
   const auditList = (audits as AuditWithLocation[]) ?? [];
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
-  const canStart = (profile.role === 'admin' || profile.role === 'auditor') && !isAllLocations;
+  const canStart = (profile.role === 'admin' || profile.role === 'auditor') && locations.length > 0;
 
   return (
     <div>
       <h1 className="mb-6 text-2xl font-semibold text-foreground">Auditorías</h1>
 
       {isAllLocations && (
-        <p className="mb-4 text-sm text-foreground">
-          Vista general: auditorías de todos los locales. Elegí un local en el menú para iniciar una.
-        </p>
+        <p className="mb-4 text-sm text-foreground">Vista general: auditorías de todos los locales.</p>
       )}
 
-      {canStart && <StartAuditForm />}
+      {canStart && (
+        <StartAuditForm locations={locations} defaultLocationId={isAllLocations ? null : locationValue} />
+      )}
 
       <h2 className="mb-3 text-lg font-medium text-foreground">Historial de auditorías</h2>
       <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
