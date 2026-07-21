@@ -62,11 +62,13 @@ export function ProductsClient({
   initialCategories,
   initialAreas,
   canEdit,
+  isAllLocations,
 }: {
   initialProducts: Product[];
   initialCategories: Category[];
   initialAreas: Area[];
   canEdit: boolean;
+  isAllLocations: boolean;
 }) {
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
@@ -135,6 +137,8 @@ export function ProductsClient({
     }
     return result;
   }, [pageSlice]);
+
+  const tableColumnCount = 7 + (isAllLocations ? 1 : 0) + (canEdit ? 1 : 0);
 
   function toggleSort(key: SortKey) {
     setPage(1);
@@ -351,6 +355,7 @@ export function ProductsClient({
                 Rubro{sortArrow('category')}
               </th>
               <th className="px-4 py-2 font-medium">Área</th>
+              {isAllLocations && <th className="px-4 py-2 font-medium">Local</th>}
               <th
                 className="cursor-pointer select-none px-4 py-2 font-medium hover:text-foreground"
                 onClick={() => toggleSort('quantity')}
@@ -365,7 +370,7 @@ export function ProductsClient({
           {filtered.length === 0 && (
             <tbody>
               <tr>
-                <td colSpan={canEdit ? 8 : 7} className="px-4 py-6 text-center text-foreground">
+                <td colSpan={tableColumnCount} className="px-4 py-6 text-center text-foreground">
                   No se encontraron productos.
                 </td>
               </tr>
@@ -375,7 +380,7 @@ export function ProductsClient({
             <tbody key={categoryName}>
               <tr className="bg-background">
                 <td
-                  colSpan={canEdit ? 8 : 7}
+                  colSpan={tableColumnCount}
                   className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground"
                 >
                   {categoryName}
@@ -387,6 +392,13 @@ export function ProductsClient({
                   <td className="px-4 py-2 text-foreground">{p.barcode ?? '—'}</td>
                   <td className="px-4 py-2 text-foreground">{p.categories?.name ?? SIN_RUBRO}</td>
                   <td className="px-4 py-2 text-foreground">{p.areas?.name ?? SIN_AREA}</td>
+                  {isAllLocations && (
+                    <td className="px-4 py-2 text-foreground">
+                      {p.location_breakdown && p.location_breakdown.length > 0
+                        ? p.location_breakdown.map((l) => `${l.name}: ${l.quantity}`).join(', ')
+                        : '—'}
+                    </td>
+                  )}
                   <td
                     className={`px-4 py-2 font-semibold ${p.quantity < p.min_stock ? 'text-red-600' : 'text-green-600'}`}
                   >

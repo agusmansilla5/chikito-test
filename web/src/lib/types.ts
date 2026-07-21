@@ -35,6 +35,7 @@ export type Product = {
   sale_price: number | null;
   categories?: { name: string } | null;
   areas?: { name: string } | null;
+  location_breakdown?: { name: string; quantity: number }[];
 };
 
 export type Audit = {

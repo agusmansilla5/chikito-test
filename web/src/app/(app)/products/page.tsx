@@ -5,7 +5,7 @@ import type { Product, Category, Area } from '@/lib/types';
 import { ProductsClient } from './products-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
-type StockRow = { product_id: string; quantity: number; min_stock: number };
+type StockRow = { product_id: string; location_id: string; quantity: number; min_stock: number };
 
 export default async function ProductsPage() {
   const profile = await requireProfile();
@@ -25,18 +25,23 @@ export default async function ProductsPage() {
       .select('*, categories(name), areas(name)')
       .eq('active', true)
       .order('name');
-    const { data: stockRows } = await supabase.from('product_stock').select('product_id, quantity, min_stock');
-    const stockByProduct = new Map<string, { quantity: number; min_stock: number }>();
+    const { data: stockRows } = await supabase.from('product_stock').select('product_id, location_id, quantity, min_stock');
+    const locationNameById = new Map(locations.map((l) => [l.id, l.name]));
+    const stockByProduct = new Map<string, { quantity: number; min_stock: number; byLocation: { name: string; quantity: number }[] }>();
     for (const row of (stockRows as StockRow[]) ?? []) {
-      const acc = stockByProduct.get(row.product_id) ?? { quantity: 0, min_stock: 0 };
+      const acc = stockByProduct.get(row.product_id) ?? { quantity: 0, min_stock: 0, byLocation: [] };
       acc.quantity += row.quantity;
       acc.min_stock += row.min_stock;
+      if (row.quantity > 0) {
+        acc.byLocation.push({ name: locationNameById.get(row.location_id) ?? '—', quantity: row.quantity });
+      }
       stockByProduct.set(row.product_id, acc);
     }
     products = ((productsRaw as Product[]) ?? []).map((p) => ({
       ...p,
       quantity: stockByProduct.get(p.id)?.quantity ?? 0,
       min_stock: stockByProduct.get(p.id)?.min_stock ?? 0,
+      location_breakdown: stockByProduct.get(p.id)?.byLocation ?? [],
     }));
   } else if (locationValue) {
     const { data: productsRaw } = await supabase
@@ -68,6 +73,7 @@ export default async function ProductsPage() {
         initialCategories={(categories as Category[]) ?? []}
         initialAreas={(areas as Area[]) ?? []}
         canEdit={canEdit}
+        isAllLocations={isAllLocations}
       />
     </div>
   );
