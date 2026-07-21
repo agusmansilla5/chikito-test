@@ -16,15 +16,10 @@ export async function createLocation(name: string, address: string | null) {
   const { data, error } = await supabase.from('locations').insert({ name, address }).select().single();
   if (error) return { error: error.message, location: null };
 
-  // Nuevo local: le crea la fila de stock (en 0) a cada producto activo para que
-  // aparezca en las listas de ese local desde el primer momento.
-  const { data: products } = await supabase.from('products').select('id');
-  if (products && products.length > 0) {
-    await supabase
-      .from('product_stock')
-      .insert(products.map((p) => ({ product_id: p.id, location_id: data.id, quantity: 0, min_stock: 0 })));
-  }
-
+  // A propósito, NO se siembra stock en cero para todo el catálogo acá: un
+  // local nuevo arranca vacío y solo va a tener los productos que se cuenten
+  // o registren específicamente ahí (por movimiento, alta de producto o
+  // importación de conteo), no el catálogo entero de los demás locales.
   revalidatePath('/', 'layout');
   return { error: null, location: data };
 }

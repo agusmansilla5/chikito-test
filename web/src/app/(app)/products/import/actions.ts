@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { getLocations, getSelectedLocationId } from '@/lib/location';
+import { getSelectedLocationId } from '@/lib/location';
 
 export type ImportRow = {
   productId: string | null; // null = crear producto nuevo
@@ -24,8 +24,6 @@ export async function importStockCount(rows: ImportRow[]) {
 
   const locationId = await getSelectedLocationId();
   if (!locationId) return { error: 'No hay ningún local seleccionado.', created: 0, updated: 0 };
-
-  const locations = await getLocations();
 
   const { data: openAudit } = await supabase
     .from('audits')
@@ -64,17 +62,11 @@ export async function importStockCount(rows: ImportRow[]) {
       created += 1;
       newProductIds.add(productId);
 
-      if (locations.length > 0) {
-        const newProductId = productId;
-        await supabase.from('product_stock').insert(
-          locations.map((l) => ({
-            product_id: newProductId,
-            location_id: l.id,
-            quantity: 0,
-            min_stock: l.id === locationId ? (row.minStock ?? 0) : 0,
-          }))
-        );
-      }
+      // Solo se carga en el local donde se está importando, no en todos los
+      // locales - mismo criterio que createProduct.
+      await supabase
+        .from('product_stock')
+        .insert({ product_id: productId, location_id: locationId, min_stock: row.minStock ?? 0, quantity: 0 });
     }
 
     resolved.push({ id: productId, counted: row.countedQuantity });

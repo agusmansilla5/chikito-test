@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { getLocations, getSelectedLocationId } from '@/lib/location';
+import { getSelectedLocationId } from '@/lib/location';
 
 export type ProductInput = {
   name: string;
@@ -31,18 +31,13 @@ export async function createProduct(input: ProductInput, initialQuantity: number
   const { data: product, error } = await supabase.from('products').insert(productFields).select().single();
   if (error) return { error: describeProductError(error) };
 
-  const locations = await getLocations();
-  const locationId = await getSelectedLocationId(locations);
+  const locationId = await getSelectedLocationId();
 
-  if (locations.length > 0) {
-    await supabase.from('product_stock').insert(
-      locations.map((l) => ({
-        product_id: product.id,
-        location_id: l.id,
-        quantity: 0,
-        min_stock: l.id === locationId ? min_stock : 0,
-      }))
-    );
+  // Un producto nuevo solo se carga en el local donde se creó - no se
+  // siembra en cero en el resto de los locales. Cada sector arranca vacío y
+  // solo tiene lo que efectivamente se cuenta/registra ahí.
+  if (locationId) {
+    await supabase.from('product_stock').insert({ product_id: product.id, location_id: locationId, min_stock, quantity: 0 });
   }
 
   if (initialQuantity > 0 && user && locationId) {
