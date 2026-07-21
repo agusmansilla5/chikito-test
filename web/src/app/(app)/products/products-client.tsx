@@ -12,6 +12,7 @@ import {
   createArea,
   deleteArea,
 } from './actions';
+import { CountTemplateExport } from './count-template-export';
 
 type FormState = {
   id: string | null;
@@ -305,14 +306,17 @@ export function ProductsClient({
             </option>
           ))}
         </select>
-        {canEdit && (
-          <button
-            onClick={openCreate}
-            className="ml-auto rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            + Nuevo producto
-          </button>
-        )}
+        <div className="ml-auto flex items-center gap-3">
+          <CountTemplateExport products={filtered} />
+          {canEdit && (
+            <button
+              onClick={openCreate}
+              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
+            >
+              + Nuevo producto
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
