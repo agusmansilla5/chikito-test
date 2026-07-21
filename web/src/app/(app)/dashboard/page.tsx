@@ -14,6 +14,7 @@ import { ProductsClient } from '../products/products-client';
 import { StartAuditForm } from '../audits/audits-client';
 import { DeleteAuditButton } from '../audits/delete-button';
 import { MovementClient } from '../movement/movement-client';
+import { CountSheetClient } from '../movement/count-sheet-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
 type StockRow = { product_id: string; quantity: number; min_stock: number };
@@ -311,7 +312,9 @@ export default async function DashboardPage({
 
             {openAudit && (
               <div className="mb-8">
-                <h3 className="mb-3 text-base font-medium text-foreground">Cargar productos (auditoría en curso)</h3>
+                <h3 className="mb-3 text-base font-medium text-foreground">Conteo (auditoría en curso)</h3>
+                <CountSheetClient products={productList} />
+                <h3 className="mb-3 text-base font-medium text-foreground">Agregar un producto que falte en la lista</h3>
                 <MovementClient
                   initialProducts={productList}
                   initialCategories={dashboardCategories}

@@ -7,6 +7,7 @@ import { CloseAuditButton } from '../close-button';
 import { NoteEditor } from '../note-editor';
 import { AuditExport } from '../audit-export';
 import { MovementClient } from '../../movement/movement-client';
+import { CountSheetClient } from '../../movement/count-sheet-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
 
@@ -143,7 +144,9 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
 
       {isOpen && canLoadProducts && (
         <div className="mb-8">
-          <h2 className="mb-3 text-lg font-medium text-foreground">Cargar productos</h2>
+          <h2 className="mb-3 text-lg font-medium text-foreground">Conteo</h2>
+          <CountSheetClient products={auditProducts} />
+          <h2 className="mb-3 text-lg font-medium text-foreground">Agregar un producto que falte en la lista</h2>
           <MovementClient
             initialProducts={auditProducts}
             initialCategories={auditCategories}
