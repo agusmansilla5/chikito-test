@@ -1,17 +1,33 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { requireProfile } from '@/lib/dal';
 import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
 import { formatDateTime, formatWeekday } from '@/lib/date';
-import type { Product, StockMovement } from '@/lib/types';
+import type { Product, StockMovement, Category, Area, Audit } from '@/lib/types';
 import { StatCard } from '../stat-card';
 import { RealtimeRefresh } from './realtime-refresh';
 import { ReportExport } from './report-export';
 import { StockReportExport } from './stock-report-export';
 import { MovementsChart } from './movements-chart';
+import { CollapsibleSection } from './collapsible-section';
+import { ProductsClient } from '../products/products-client';
+import { StartAuditForm } from '../audits/audits-client';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
 type StockRow = { product_id: string; quantity: number; min_stock: number };
+const AUDITS_PAGE_SIZE = 20;
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ auditsPage?: string }>;
+}) {
+  const { auditsPage: auditsPageParam } = await searchParams;
+  const auditsPage = Math.max(1, Number(auditsPageParam) || 1);
+  const auditsFrom = (auditsPage - 1) * AUDITS_PAGE_SIZE;
+  const auditsTo = auditsFrom + AUDITS_PAGE_SIZE - 1;
+
+  const profile = await requireProfile();
   const supabase = await createClient();
   const locations = await getLocations();
   const locationValue = await getSelectedLocationValue(locations);
@@ -65,7 +81,7 @@ export default async function DashboardPage() {
       supabase.from('low_stock_products').select('*').eq('location_id', locationValue),
       supabase
         .from('products')
-        .select('*, categories(name), product_stock!inner(quantity, min_stock)')
+        .select('*, categories(name), areas(name), product_stock!inner(quantity, min_stock)')
         .eq('active', true)
         .eq('product_stock.location_id', locationValue)
         .order('name'),
@@ -85,6 +101,31 @@ export default async function DashboardPage() {
     }));
     weekMovements = weekData ?? [];
   }
+
+  let dashboardCategories: Category[] = [];
+  let dashboardAreas: Area[] = [];
+  let auditList: (Audit & { locations?: { name: string } | null })[] = [];
+  let auditsTotalPages = 1;
+
+  if (!isAllLocations && locationValue) {
+    const [{ data: categoriesData }, { data: areasData }, { data: audits, count }] = await Promise.all([
+      supabase.from('categories').select('*').order('name'),
+      supabase.from('areas').select('*').order('name'),
+      supabase
+        .from('audits')
+        .select('*, profiles(full_name)', { count: 'exact' })
+        .eq('location_id', locationValue)
+        .order('started_at', { ascending: false })
+        .range(auditsFrom, auditsTo),
+    ]);
+    dashboardCategories = (categoriesData as Category[]) ?? [];
+    dashboardAreas = (areasData as Area[]) ?? [];
+    auditList = (audits as (Audit & { locations?: { name: string } | null })[]) ?? [];
+    auditsTotalPages = Math.max(1, Math.ceil((count ?? 0) / AUDITS_PAGE_SIZE));
+  }
+
+  const canEditProducts = (profile.role === 'admin' || profile.role === 'auditor') && !isAllLocations;
+  const canStartAudit = (profile.role === 'admin' || profile.role === 'auditor') && !isAllLocations;
 
   const todayKey = new Date().toDateString();
   const movementsToday = movementList.filter((m) => new Date(m.created_at).toDateString() === todayKey).length;
@@ -237,6 +278,102 @@ export default async function DashboardPage() {
           </table>
         </div>
       </section>
+
+      {!isAllLocations && locationValue && (
+        <>
+          <CollapsibleSection title="Productos">
+            <ProductsClient
+              initialProducts={productList}
+              initialCategories={dashboardCategories}
+              initialAreas={dashboardAreas}
+              canEdit={canEditProducts}
+              isAllLocations={false}
+            />
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Auditorías">
+            {canStartAudit && <StartAuditForm />}
+
+            <h3 className="mb-3 text-base font-medium text-foreground">Historial de auditorías</h3>
+            <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
+              <table className="w-full text-sm">
+                <thead className="bg-background text-left text-foreground">
+                  <tr>
+                    <th className="px-4 py-2 font-medium">Fecha inicio</th>
+                    <th className="px-4 py-2 font-medium">Fecha cierre</th>
+                    <th className="px-4 py-2 font-medium">Estado</th>
+                    <th className="px-4 py-2 font-medium">Iniciada por</th>
+                    <th className="px-4 py-2 font-medium">Nota</th>
+                    <th className="px-4 py-2 font-medium">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditList.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-6 text-center text-foreground">
+                        Todavía no se inició ninguna auditoría.
+                      </td>
+                    </tr>
+                  )}
+                  {auditList.map((a) => {
+                    const isOpen = !a.ended_at;
+                    return (
+                      <tr key={a.id} className="border-t border-zinc-100 hover:bg-background dark:border-zinc-800">
+                        <td className="px-4 py-2 font-medium text-foreground">{formatDateTime(a.started_at)}</td>
+                        <td className="px-4 py-2 text-foreground">{a.ended_at ? formatDateTime(a.ended_at) : '—'}</td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={
+                              isOpen
+                                ? 'rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent'
+                                : 'rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
+                            }
+                          >
+                            {isOpen ? 'En curso' : 'Cerrada'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-foreground">{a.profiles?.full_name ?? '—'}</td>
+                        <td className="px-4 py-2 text-foreground">{a.note ?? '—'}</td>
+                        <td className="px-4 py-2">
+                          <Link href={`/audits/${a.id}`} className="font-medium text-accent hover:underline">
+                            Ver detalle
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {auditsTotalPages > 1 && (
+              <div className="mt-4 flex items-center justify-between text-sm text-foreground">
+                <Link
+                  href={`/dashboard?auditsPage=${auditsPage - 1}`}
+                  aria-disabled={auditsPage <= 1}
+                  className={`rounded-md border border-zinc-300 px-3 py-1.5 font-medium dark:border-zinc-700 ${
+                    auditsPage <= 1 ? 'pointer-events-none opacity-40' : 'hover:bg-background'
+                  }`}
+                >
+                  ‹ Anterior
+                </Link>
+                <span>
+                  Página {auditsPage} de {auditsTotalPages}
+                </span>
+                <Link
+                  href={`/dashboard?auditsPage=${auditsPage + 1}`}
+                  aria-disabled={auditsPage >= auditsTotalPages}
+                  className={`rounded-md border border-zinc-300 px-3 py-1.5 font-medium dark:border-zinc-700 ${
+                    auditsPage >= auditsTotalPages ? 'pointer-events-none opacity-40' : 'hover:bg-background'
+                  }`}
+                >
+                  Siguiente ›
+                </Link>
+              </div>
+            )}
+          </CollapsibleSection>
+        </>
+      )}
     </div>
   );
 }
