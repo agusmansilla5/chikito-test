@@ -35,6 +35,7 @@ export function MovementClient({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
 
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -57,6 +58,10 @@ export function MovementClient({
       (p) => p.name.toLowerCase().includes(term) || (p.barcode ?? '').toLowerCase().includes(term)
     );
   }, [products, query]);
+
+  const VISIBLE_PRODUCTS_LIMIT = 3;
+  const visibleProducts = showAllProducts ? filteredProducts : filteredProducts.slice(0, VISIBLE_PRODUCTS_LIMIT);
+  const hiddenProductsCount = filteredProducts.length - visibleProducts.length;
 
   function selectProduct(p: Product) {
     setSelectedProduct(p);
@@ -199,6 +204,7 @@ export function MovementClient({
             setQuery(e.target.value);
             setSelectedProduct(null);
             setCreating(false);
+            setShowAllProducts(false);
           }}
         />
         <button
@@ -213,8 +219,8 @@ export function MovementClient({
 
       {!creating && (
         <div className="mb-2 mt-3">
-          <div className="flex flex-wrap gap-2">
-            {filteredProducts.map((p) => (
+          <div className="flex flex-wrap items-center gap-2">
+            {visibleProducts.map((p) => (
               <button
                 key={p.id}
                 onClick={() => selectProduct(p)}
@@ -227,6 +233,22 @@ export function MovementClient({
                 {p.name}
               </button>
             ))}
+            {hiddenProductsCount > 0 && (
+              <button
+                onClick={() => setShowAllProducts(true)}
+                className="rounded-full border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-foreground hover:bg-background dark:border-zinc-700 dark:hover:bg-zinc-800"
+              >
+                (+{hiddenProductsCount} más) +
+              </button>
+            )}
+            {showAllProducts && filteredProducts.length > VISIBLE_PRODUCTS_LIMIT && (
+              <button
+                onClick={() => setShowAllProducts(false)}
+                className="rounded-full border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-foreground hover:bg-background dark:border-zinc-700 dark:hover:bg-zinc-800"
+              >
+                Mostrar menos −
+              </button>
+            )}
           </div>
           {filteredProducts.length === 0 && (
             <p className="mt-2 text-xs text-foreground">No se encontró ningún producto con &quot;{query}&quot;.</p>
