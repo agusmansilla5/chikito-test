@@ -68,6 +68,7 @@ export default async function AuditsPage({
               <th className="px-4 py-2 font-medium">Fecha cierre</th>
               <th className="px-4 py-2 font-medium">Estado</th>
               <th className="px-4 py-2 font-medium">Iniciada por</th>
+              <th className="px-4 py-2 font-medium">Responsable</th>
               <th className="px-4 py-2 font-medium">Nota</th>
               <th className="px-4 py-2 font-medium">Acciones</th>
             </tr>
@@ -75,7 +76,7 @@ export default async function AuditsPage({
           <tbody>
             {auditList.length === 0 && (
               <tr>
-                <td colSpan={isAllLocations ? 7 : 6} className="px-4 py-6 text-center text-foreground">
+                <td colSpan={isAllLocations ? 8 : 7} className="px-4 py-6 text-center text-foreground">
                   Todavía no se inició ninguna auditoría.
                 </td>
               </tr>
@@ -103,6 +104,7 @@ export default async function AuditsPage({
                     </span>
                   </td>
                   <td className="px-4 py-2 text-foreground">{a.profiles?.full_name ?? '—'}</td>
+                  <td className="px-4 py-2 text-foreground">{a.responsible_name ?? '—'}</td>
                   <td className="px-4 py-2 text-foreground">{a.note ?? '—'}</td>
                   <td className="px-4 py-2">
                     <Link href={`/audits/${a.id}`} className="mr-3 font-medium text-accent hover:underline">

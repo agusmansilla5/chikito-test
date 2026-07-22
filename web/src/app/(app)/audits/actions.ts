@@ -6,15 +6,18 @@ import { createClient } from '@/lib/supabase/server';
 // El sector se elige explícitamente en el form (StartAuditForm), en vez de
 // depender del local seleccionado en el switcher - así se puede iniciar una
 // auditoría en cualquier sector sin tener que ir a cambiarlo primero.
-export async function startAudit(note: string | null, locationId: string) {
+export async function startAudit(note: string | null, locationId: string, responsibleName: string) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: 'No autenticado.' };
   if (!locationId) return { error: 'Elegí un sector.' };
+  if (!responsibleName.trim()) return { error: 'Ingresá el nombre y apellido del responsable del stock.' };
 
-  const { error } = await supabase.from('audits').insert({ started_by: user.id, note, location_id: locationId });
+  const { error } = await supabase
+    .from('audits')
+    .insert({ started_by: user.id, note, location_id: locationId, responsible_name: responsibleName.trim() });
   if (error) return { error: error.message };
   revalidatePath('/audits');
   revalidatePath('/dashboard');

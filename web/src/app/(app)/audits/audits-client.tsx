@@ -15,6 +15,7 @@ export function StartAuditForm({
   heading?: string;
 }) {
   const [note, setNote] = useState('');
+  const [responsibleName, setResponsibleName] = useState('');
   const [locationId, setLocationId] = useState(defaultLocationId ?? locations[0]?.id ?? '');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -24,9 +25,13 @@ export function StartAuditForm({
       setError('Elegí un sector.');
       return;
     }
+    if (!responsibleName.trim()) {
+      setError('Ingresá el nombre y apellido del responsable del stock.');
+      return;
+    }
     setError(null);
     setSubmitting(true);
-    const result = await startAudit(note.trim() || null, locationId);
+    const result = await startAudit(note.trim() || null, locationId, responsibleName.trim());
     if (result.error) {
       setSubmitting(false);
       setError(result.error);
@@ -38,12 +43,24 @@ export function StartAuditForm({
       await setLocation(locationId);
     }
     setNote('');
+    setResponsibleName('');
     window.location.reload();
   }
 
   return (
     <div className="mb-8 rounded-xl border border-zinc-200 bg-surface p-4 shadow-sm dark:border-zinc-800">
       <h2 className="mb-2 font-semibold text-foreground">{heading}</h2>
+      <label className="mb-1 block text-sm font-medium text-foreground">
+        Nombre y apellido del responsable del stock <span className="text-red-600">*</span>
+      </label>
+      <input
+        type="text"
+        required
+        placeholder="Ej: Juan Pérez"
+        value={responsibleName}
+        onChange={(e) => setResponsibleName(e.target.value)}
+        className="mb-3 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
+      />
       <div className="flex flex-wrap gap-2">
         {locations.length > 1 && (
           <select
@@ -67,7 +84,7 @@ export function StartAuditForm({
         />
         <button
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || !responsibleName.trim()}
           className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
         >
           {submitting ? 'Iniciando...' : '+ Iniciar auditoría'}

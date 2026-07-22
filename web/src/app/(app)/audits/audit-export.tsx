@@ -14,7 +14,7 @@ type SummaryRow = {
   faltaPedir: number;
 };
 
-function buildRows(summary: SummaryRow[]) {
+function buildRows(summary: SummaryRow[], responsibleName: string | null) {
   return summary.map((s) => ({
     Producto: s.name,
     Unidad: s.unit,
@@ -24,6 +24,7 @@ function buildRows(summary: SummaryRow[]) {
     'Stock final': s.stockFinal,
     Mínimo: s.minStock,
     'Falta pedir': s.faltaPedir,
+    Responsable: responsibleName ?? '—',
   }));
 }
 
@@ -32,7 +33,7 @@ export function AuditExport({ audit, summary }: { audit: Audit; summary: Summary
 
   async function exportExcel() {
     const XLSX = await import('xlsx');
-    const ws = XLSX.utils.json_to_sheet(buildRows(summary));
+    const ws = XLSX.utils.json_to_sheet(buildRows(summary, audit.responsible_name));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Auditoría');
     XLSX.writeFile(wb, `${filenameBase}.xlsx`);
@@ -47,9 +48,10 @@ export function AuditExport({ audit, summary }: { audit: Audit; summary: Summary
     doc.setFontSize(10);
     doc.text(`Inicio: ${formatDateTime(audit.started_at)}`, 14, 24);
     doc.text(`Cierre: ${audit.ended_at ? formatDateTime(audit.ended_at) : 'En curso'}`, 14, 30);
-    if (audit.note) doc.text(`Nota: ${audit.note}`, 14, 36);
+    doc.text(`Responsable del stock: ${audit.responsible_name ?? '—'}`, 14, 36);
+    if (audit.note) doc.text(`Nota: ${audit.note}`, 14, 42);
     autoTable(doc, {
-      startY: audit.note ? 42 : 36,
+      startY: audit.note ? 48 : 42,
       head: [['Producto', 'Unidad', 'Stock inicial', 'Entradas', 'Salidas', 'Stock final', 'Mínimo', 'Falta pedir']],
       body: summary.map((s) => [
         s.name,

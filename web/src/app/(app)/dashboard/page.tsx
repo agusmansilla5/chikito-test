@@ -323,7 +323,12 @@ export default async function DashboardPage({
             {openAudit && (
               <div className="mb-8">
                 <h3 className="mb-3 text-base font-medium text-foreground">Conteo (auditoría en curso)</h3>
-                <CountSheetClient products={productList} />
+                <CountSheetClient
+                  products={productList}
+                  auditId={openAudit.id}
+                  canClose={profile.role === 'admin'}
+                  closeRedirectTo={`/audits/${openAudit.id}`}
+                />
                 <h3 className="mb-3 text-base font-medium text-foreground">Agregar un producto que falte en la lista</h3>
                 <MovementClient
                   initialProducts={productList}
@@ -343,6 +348,7 @@ export default async function DashboardPage({
                     <th className="px-4 py-2 font-medium">Fecha cierre</th>
                     <th className="px-4 py-2 font-medium">Estado</th>
                     <th className="px-4 py-2 font-medium">Iniciada por</th>
+                    <th className="px-4 py-2 font-medium">Responsable</th>
                     <th className="px-4 py-2 font-medium">Nota</th>
                     <th className="px-4 py-2 font-medium">Acciones</th>
                   </tr>
@@ -350,7 +356,7 @@ export default async function DashboardPage({
                 <tbody>
                   {auditList.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-6 text-center text-foreground">
+                      <td colSpan={7} className="px-4 py-6 text-center text-foreground">
                         Todavía no se inició ninguna auditoría.
                       </td>
                     </tr>
@@ -373,6 +379,7 @@ export default async function DashboardPage({
                           </span>
                         </td>
                         <td className="px-4 py-2 text-foreground">{a.profiles?.full_name ?? '—'}</td>
+                        <td className="px-4 py-2 text-foreground">{a.responsible_name ?? '—'}</td>
                         <td className="px-4 py-2 text-foreground">{a.note ?? '—'}</td>
                         <td className="px-4 py-2">
                           <Link href={`/audits/${a.id}`} className="mr-3 font-medium text-accent hover:underline">

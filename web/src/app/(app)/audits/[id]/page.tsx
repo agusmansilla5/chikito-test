@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { formatDate, formatDateTime } from '@/lib/date';
 import type { Audit, StockMovement, Product, Category, Area, Unit } from '@/lib/types';
-import { CloseAuditButton } from '../close-button';
 import { NoteEditor } from '../note-editor';
 import { AuditExport } from '../audit-export';
 import { MovementClient } from '../../movement/movement-client';
@@ -128,6 +127,9 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
             {' · '}
             {auditData.profiles?.full_name ?? '—'}
           </p>
+          <p className="mt-1 text-sm text-foreground">
+            Responsable del stock: <span className="font-medium">{auditData.responsible_name ?? '—'}</span>
+          </p>
           {canClose ? (
             <NoteEditor auditId={auditData.id} initialNote={auditData.note} />
           ) : (
@@ -144,14 +146,13 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           >
             {isOpen ? 'En curso' : 'Cerrada'}
           </span>
-          {isOpen && canClose && <CloseAuditButton auditId={auditData.id} />}
         </div>
       </div>
 
       {isOpen && canLoadProducts && (
         <div className="mb-8">
           <h2 className="mb-3 text-lg font-medium text-foreground">Conteo</h2>
-          <CountSheetClient products={auditProducts} />
+          <CountSheetClient products={auditProducts} auditId={auditData.id} canClose={canClose} />
           <h2 className="mb-3 text-lg font-medium text-foreground">Agregar un producto que falte en la lista</h2>
           <MovementClient
             initialProducts={auditProducts}

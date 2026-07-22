@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server';
 import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
 import type { Product, Category, Area } from '@/lib/types';
 import { StartAuditForm } from '../audits/audits-client';
-import { CloseAuditButton } from '../audits/close-button';
 import { CountSheetClient } from '../movement/count-sheet-client';
 import { MovementClient } from '../movement/movement-client';
 import { RealtimeRefresh } from './realtime-refresh';
@@ -74,16 +73,18 @@ export async function AuditorView() {
     <div>
       <RealtimeRefresh />
 
-      <div className="mb-6 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Auditoría en curso: {currentLocationName}</h1>
-          {openAudit.note && <p className="mt-1 text-sm italic text-foreground">{openAudit.note}</p>}
-        </div>
-        <CloseAuditButton auditId={openAudit.id} redirectTo={`/audits/${openAudit.id}`} />
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-foreground">Auditoría en curso: {currentLocationName}</h1>
+        {openAudit.note && <p className="mt-1 text-sm italic text-foreground">{openAudit.note}</p>}
       </div>
 
       <h2 className="mb-3 text-lg font-medium text-foreground">Conteo</h2>
-      <CountSheetClient products={products} />
+      <CountSheetClient
+        products={products}
+        auditId={openAudit.id}
+        canClose
+        closeRedirectTo={`/audits/${openAudit.id}`}
+      />
 
       <h2 className="mb-3 text-lg font-medium text-foreground">Agregar un producto que falte en la lista</h2>
       <MovementClient
