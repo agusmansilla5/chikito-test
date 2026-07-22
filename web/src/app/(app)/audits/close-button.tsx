@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { closeAudit } from './actions';
 
-export function CloseAuditButton({ auditId }: { auditId: string }) {
+export function CloseAuditButton({ auditId, redirectTo }: { auditId: string; redirectTo?: string }) {
+  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleClose() {
@@ -15,7 +17,11 @@ export function CloseAuditButton({ auditId }: { auditId: string }) {
       alert(result.error);
       return;
     }
-    window.location.reload();
+    if (redirectTo) {
+      router.push(redirectTo);
+    } else {
+      window.location.reload();
+    }
   }
 
   return (

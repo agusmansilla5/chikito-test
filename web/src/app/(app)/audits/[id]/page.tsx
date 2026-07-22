@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { formatDate, formatDateTime } from '@/lib/date';
-import type { Audit, StockMovement, Product, Category, Area } from '@/lib/types';
+import type { Audit, StockMovement, Product, Category, Area, Unit } from '@/lib/types';
 import { CloseAuditButton } from '../close-button';
 import { NoteEditor } from '../note-editor';
 import { AuditExport } from '../audit-export';
@@ -78,22 +78,28 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
     auditAreas = (areasData as Area[]) ?? [];
   }
 
+  // Se agrupa por (producto, unidad) en vez de por producto solo: si un mismo
+  // producto se cargó con distintas unidades dentro de la auditoría (ej. una
+  // vez en kg y otra en gr), sumarlas ciegamente daría un número sin sentido.
+  // Cada combinación producto+unidad queda como su propia fila.
   const summaryMap = new Map<
     string,
-    { name: string; entradas: number; salidas: number; stockFinal: number; minStock: number }
+    { name: string; unit: Unit; entradas: number; salidas: number; stockFinal: number; minStock: number }
   >();
   for (const m of movementList) {
-    if (!summaryMap.has(m.product_id)) {
+    const key = `${m.product_id}::${m.unit ?? 'u'}`;
+    if (!summaryMap.has(key)) {
       const stock = stockByProduct.get(m.product_id);
-      summaryMap.set(m.product_id, {
+      summaryMap.set(key, {
         name: m.products?.name ?? 'Producto',
+        unit: m.unit ?? 'u',
         entradas: 0,
         salidas: 0,
         stockFinal: stock?.quantity ?? 0,
         minStock: stock?.min_stock ?? 0,
       });
     }
-    const row = summaryMap.get(m.product_id)!;
+    const row = summaryMap.get(key)!;
     if (m.type === 'entrada') row.entradas += m.quantity;
     else row.salidas += m.quantity;
   }
@@ -165,6 +171,7 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           <thead className="bg-background text-left text-foreground">
             <tr>
               <th className="px-4 py-2 font-medium">Producto</th>
+              <th className="px-4 py-2 font-medium">Unidad</th>
               <th className="px-4 py-2 font-medium">Stock inicial</th>
               <th className="px-4 py-2 font-medium">Entradas</th>
               <th className="px-4 py-2 font-medium">Salidas</th>
@@ -176,14 +183,15 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
           <tbody>
             {summary.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-foreground">
+                <td colSpan={8} className="px-4 py-6 text-center text-foreground">
                   Todavía no se cargó ningún producto en esta auditoría.
                 </td>
               </tr>
             )}
             {summary.map((s) => (
-              <tr key={s.name} className="border-t border-zinc-100 dark:border-zinc-800">
+              <tr key={`${s.name}::${s.unit}`} className="border-t border-zinc-100 dark:border-zinc-800">
                 <td className="px-4 py-2 font-medium text-foreground">{s.name}</td>
+                <td className="px-4 py-2 text-foreground">{s.unit}</td>
                 <td className="px-4 py-2 text-foreground">{s.stockInicial}</td>
                 <td className="px-4 py-2 text-green-600">{s.entradas > 0 ? `+${s.entradas}` : '—'}</td>
                 <td className="px-4 py-2 text-red-600">{s.salidas > 0 ? `-${s.salidas}` : '—'}</td>
@@ -238,7 +246,9 @@ export default async function AuditDetailPage({ params }: { params: Promise<{ id
                     {m.type === 'entrada' ? 'Entrada' : 'Salida'}
                   </span>
                 </td>
-                <td className="px-4 py-2">{m.quantity}</td>
+                <td className="px-4 py-2">
+                  {m.quantity} {m.unit ?? 'u'}
+                </td>
                 <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
                 <td className="px-4 py-2 text-foreground">{formatDateTime(m.created_at)}</td>
               </tr>

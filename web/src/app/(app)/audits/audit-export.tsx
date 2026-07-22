@@ -1,10 +1,11 @@
 'use client';
 
-import type { Audit } from '@/lib/types';
+import type { Audit, Unit } from '@/lib/types';
 import { formatDateTime } from '@/lib/date';
 
 type SummaryRow = {
   name: string;
+  unit: Unit;
   entradas: number;
   salidas: number;
   stockInicial: number;
@@ -16,6 +17,7 @@ type SummaryRow = {
 function buildRows(summary: SummaryRow[]) {
   return summary.map((s) => ({
     Producto: s.name,
+    Unidad: s.unit,
     'Stock inicial': s.stockInicial,
     Entradas: s.entradas,
     Salidas: s.salidas,
@@ -48,9 +50,10 @@ export function AuditExport({ audit, summary }: { audit: Audit; summary: Summary
     if (audit.note) doc.text(`Nota: ${audit.note}`, 14, 36);
     autoTable(doc, {
       startY: audit.note ? 42 : 36,
-      head: [['Producto', 'Stock inicial', 'Entradas', 'Salidas', 'Stock final', 'Mínimo', 'Falta pedir']],
+      head: [['Producto', 'Unidad', 'Stock inicial', 'Entradas', 'Salidas', 'Stock final', 'Mínimo', 'Falta pedir']],
       body: summary.map((s) => [
         s.name,
+        s.unit,
         String(s.stockInicial),
         s.entradas > 0 ? `+${s.entradas}` : '—',
         s.salidas > 0 ? `-${s.salidas}` : '—',

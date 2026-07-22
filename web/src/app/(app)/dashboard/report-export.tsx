@@ -8,6 +8,7 @@ function rowsFor(movements: StockMovement[]) {
     Producto: m.products?.name ?? '—',
     Tipo: m.type === 'entrada' ? 'Entrada' : 'Salida',
     Cantidad: m.quantity,
+    Unidad: m.unit ?? 'u',
     Usuario: m.profiles?.full_name ?? '—',
     Fecha: formatDateTime(m.created_at),
   }));
@@ -30,8 +31,8 @@ export function ReportExport({ movements }: { movements: StockMovement[] }) {
     doc.text('Reporte de movimientos de stock', 14, 16);
     autoTable(doc, {
       startY: 22,
-      head: [['Producto', 'Tipo', 'Cantidad', 'Usuario', 'Fecha']],
-      body: rowsFor(movements).map((r) => [r.Producto, r.Tipo, String(r.Cantidad), r.Usuario, r.Fecha]),
+      head: [['Producto', 'Tipo', 'Cantidad', 'Unidad', 'Usuario', 'Fecha']],
+      body: rowsFor(movements).map((r) => [r.Producto, r.Tipo, String(r.Cantidad), r.Unidad, r.Usuario, r.Fecha]),
       styles: { fontSize: 9 },
       headStyles: { fillColor: [37, 99, 235] },
     });

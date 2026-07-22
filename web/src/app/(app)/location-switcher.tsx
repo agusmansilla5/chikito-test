@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Location } from '@/lib/types';
 import { ALL_LOCATIONS_VALUE } from '@/lib/location-constants';
@@ -17,38 +17,26 @@ export function LocationSwitcher({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [open, setOpen] = useState(false);
+  // Anidado tipo acordeón (como "Pedidos" con sus sub-ítems): arranca
+  // desplegado si ya hay un sector puntual elegido, para no esconder dónde
+  // está parado el usuario.
+  const [open, setOpen] = useState(selectedValue !== ALL_LOCATIONS_VALUE && selectedValue !== null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setEditingId(null);
-        setAdding(false);
-        setError(null);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   if (locations.length === 0 && !isAdmin) return null;
 
   const isAll = selectedValue === ALL_LOCATIONS_VALUE;
-  const current = isAll ? 'General (todos los locales)' : locations.find((l) => l.id === selectedValue)?.name;
+  const currentSectorName = locations.find((l) => l.id === selectedValue)?.name;
 
   function handleSelect(value: string) {
     startTransition(async () => {
       await setLocation(value);
       router.refresh();
     });
-    setOpen(false);
   }
 
   function startEdit(l: Location) {
@@ -81,21 +69,33 @@ export function LocationSwitcher({
   }
 
   return (
-    <div className="relative" ref={containerRef}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        disabled={isPending}
-        className="flex w-full items-center justify-between rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm font-medium text-foreground focus:border-accent focus:outline-none disabled:opacity-50 dark:border-zinc-700"
-      >
-        <span className="truncate">
-          {isAll ? '🏠' : '📍'} {current ?? '...'}
-        </span>
-        <span className="ml-2 text-xs text-foreground">▾</span>
-      </button>
+    <div className="rounded-md border border-zinc-300 dark:border-zinc-700">
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => handleSelect(ALL_LOCATIONS_VALUE)}
+          disabled={isPending}
+          className={`flex flex-1 items-center gap-2 truncate px-3 py-2 text-left text-sm font-semibold disabled:opacity-50 ${
+            isAll ? 'text-accent' : 'text-foreground'
+          }`}
+        >
+          🏠 NIDO
+          {!isAll && currentSectorName && (
+            <span className="truncate text-xs font-normal text-foreground">· {currentSectorName}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? 'Contraer sectores' : 'Expandir sectores'}
+          className="px-3 py-2 text-xs text-foreground"
+        >
+          {open ? '▾' : '▸'}
+        </button>
+      </div>
 
       {open && (
-        <div className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-zinc-200 bg-surface shadow-lg dark:border-zinc-800">
+        <div className="border-t border-zinc-200 pl-3 dark:border-zinc-800">
           <button
             type="button"
             onClick={() => handleSelect(ALL_LOCATIONS_VALUE)}
@@ -103,7 +103,7 @@ export function LocationSwitcher({
               isAll ? 'font-semibold text-accent' : 'text-foreground'
             }`}
           >
-            🏠 General (todos los locales)
+            Vista general (todos los locales)
           </button>
 
           {locations.map((l) => (

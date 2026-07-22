@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Product } from '@/lib/types';
+import type { Product, Unit } from '@/lib/types';
+import { UNIT_OPTIONS } from '@/lib/types';
 import { submitAuditCount } from './actions';
 
-type RowState = { inicial: string; ingresos: string; final: string };
+type RowState = { inicial: string; ingresos: string; final: string; unit: Unit };
 
 export function CountSheetClient({ products }: { products: Product[] }) {
   const router = useRouter();
@@ -16,7 +17,13 @@ export function CountSheetClient({ products }: { products: Product[] }) {
 
   function update(productId: string, field: keyof RowState, value: string) {
     setSavedCount(null);
-    setRows((prev) => ({ ...prev, [productId]: { ...prev[productId], [field]: value } }));
+    setRows((prev) => ({
+      ...prev,
+      [productId]: {
+        ...(prev[productId] ?? { inicial: '', ingresos: '', final: '', unit: 'u' }),
+        [field]: value,
+      } as RowState,
+    }));
   }
 
   async function handleSave() {
@@ -28,6 +35,7 @@ export function CountSheetClient({ products }: { products: Product[] }) {
         inicial: r.inicial?.trim() ? Number(r.inicial) : null,
         ingresos: r.ingresos?.trim() ? Number(r.ingresos) : null,
         final: r.final?.trim() ? Number(r.final) : null,
+        unit: r.unit ?? 'u',
       }))
       .filter((r) => r.inicial != null || r.ingresos != null || r.final != null);
 
@@ -59,6 +67,7 @@ export function CountSheetClient({ products }: { products: Product[] }) {
           <thead className="bg-background text-left text-foreground">
             <tr>
               <th className="px-4 py-2 font-medium">Producto</th>
+              <th className="px-4 py-2 font-medium">Unidad</th>
               <th className="px-4 py-2 font-medium">Inicial</th>
               <th className="px-4 py-2 font-medium">Ingresos</th>
               <th className="px-4 py-2 font-medium">Final</th>
@@ -66,10 +75,23 @@ export function CountSheetClient({ products }: { products: Product[] }) {
           </thead>
           <tbody>
             {products.map((p) => {
-              const row = rows[p.id] ?? { inicial: '', ingresos: '', final: '' };
+              const row = rows[p.id] ?? { inicial: '', ingresos: '', final: '', unit: 'u' as Unit };
               return (
                 <tr key={p.id} className="border-t border-zinc-100 dark:border-zinc-800">
                   <td className="px-4 py-2 font-medium text-foreground">{p.name}</td>
+                  <td className="px-4 py-2">
+                    <select
+                      value={row.unit}
+                      onChange={(e) => update(p.id, 'unit', e.target.value)}
+                      className="rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"
+                    >
+                      {UNIT_OPTIONS.map((u) => (
+                        <option key={u.value} value={u.value}>
+                          {u.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
                   <td className="px-4 py-2">
                     <input
                       type="number"

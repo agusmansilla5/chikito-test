@@ -50,11 +50,22 @@ export type Audit = {
 
 export type MovementType = 'entrada' | 'salida';
 
+export type Unit = 'u' | 'kg' | 'gr' | 'L' | 'mL';
+
+export const UNIT_OPTIONS: { value: Unit; label: string }[] = [
+  { value: 'u', label: 'u' },
+  { value: 'kg', label: 'kg' },
+  { value: 'gr', label: 'gr' },
+  { value: 'L', label: 'L' },
+  { value: 'mL', label: 'mL' },
+];
+
 export type StockMovement = {
   id: string;
   product_id: string;
   type: MovementType;
   quantity: number;
+  unit: Unit;
   note: string | null;
   created_at: string;
   location_id: string;

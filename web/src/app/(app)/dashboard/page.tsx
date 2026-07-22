@@ -15,6 +15,7 @@ import { StartAuditForm } from '../audits/audits-client';
 import { DeleteAuditButton } from '../audits/delete-button';
 import { MovementClient } from '../movement/movement-client';
 import { CountSheetClient } from '../movement/count-sheet-client';
+import { AuditorView } from './auditor-view';
 
 type ProductWithStock = Product & { product_stock: { quantity: number; min_stock: number }[] };
 type StockRow = { product_id: string; quantity: number; min_stock: number };
@@ -31,6 +32,13 @@ export default async function DashboardPage({
   const auditsTo = auditsFrom + AUDITS_PAGE_SIZE - 1;
 
   const profile = await requireProfile();
+
+  // El auditor no ve el panel completo: entra directo a elegir sector /
+  // contar, sin estadísticas ni tablas generales de por medio.
+  if (profile.role === 'auditor') {
+    return <AuditorView />;
+  }
+
   const supabase = await createClient();
   const locations = await getLocations();
   const locationValue = await getSelectedLocationValue(locations);
@@ -138,8 +146,8 @@ export default async function DashboardPage({
     openAudit = openAuditData ?? null;
   }
 
-  const canEditProducts = (profile.role === 'admin' || profile.role === 'auditor') && !isAllLocations;
-  const canStartAudit = (profile.role === 'admin' || profile.role === 'auditor') && !isAllLocations;
+  const canEditProducts = profile.role === 'admin' && !isAllLocations;
+  const canStartAudit = profile.role === 'admin' && !isAllLocations;
 
   const todayKey = new Date().toDateString();
   const movementsToday = movementList.filter((m) => new Date(m.created_at).toDateString() === todayKey).length;
@@ -283,7 +291,9 @@ export default async function DashboardPage({
                       {m.type === 'entrada' ? 'Entrada' : 'Salida'}
                     </span>
                   </td>
-                  <td className="px-4 py-2">{m.quantity}</td>
+                  <td className="px-4 py-2">
+                    {m.quantity} {m.unit ?? 'u'}
+                  </td>
                   <td className="px-4 py-2">{m.profiles?.full_name ?? '—'}</td>
                   <td className="px-4 py-2 text-foreground">{formatDateTime(m.created_at)}</td>
                 </tr>

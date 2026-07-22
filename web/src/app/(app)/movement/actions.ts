@@ -3,9 +3,15 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getSelectedLocationId } from '@/lib/location';
-import type { MovementType } from '@/lib/types';
+import type { MovementType, Unit } from '@/lib/types';
 
-export async function registerMovement(productId: string, type: MovementType, quantity: number, note: string | null) {
+export async function registerMovement(
+  productId: string,
+  type: MovementType,
+  quantity: number,
+  note: string | null,
+  unit: Unit = 'u'
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -32,6 +38,7 @@ export async function registerMovement(productId: string, type: MovementType, qu
     product_id: productId,
     type,
     quantity,
+    unit,
     note,
     created_by: user.id,
     location_id: locationId,
@@ -46,7 +53,13 @@ export async function registerMovement(productId: string, type: MovementType, qu
   return { error: null };
 }
 
-export type CountRow = { productId: string; inicial: number | null; ingresos: number | null; final: number | null };
+export type CountRow = {
+  productId: string;
+  inicial: number | null;
+  ingresos: number | null;
+  final: number | null;
+  unit: Unit;
+};
 
 // Planilla de conteo: Inicial/Ingresos/Final son todos editables y libres,
 // no dependen de lo que el sistema ya tenía cargado (que puede estar
@@ -90,6 +103,7 @@ export async function submitAuditCount(rows: CountRow[]) {
     product_id: string;
     type: 'entrada' | 'salida';
     quantity: number;
+    unit: Unit;
     note: string;
     created_by: string;
     location_id: string;
@@ -110,6 +124,7 @@ export async function submitAuditCount(rows: CountRow[]) {
         product_id: row.productId,
         type: diff > 0 ? 'entrada' : 'salida',
         quantity: Math.abs(diff),
+        unit: row.unit,
         note: 'Conteo de auditoría',
         created_by: user.id,
         location_id: locationId,

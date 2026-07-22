@@ -8,9 +8,11 @@ import { setLocation } from '../locations/actions';
 export function StartAuditForm({
   locations,
   defaultLocationId,
+  heading = 'Iniciar auditoría de hoy',
 }: {
   locations: Location[];
   defaultLocationId: string | null;
+  heading?: string;
 }) {
   const [note, setNote] = useState('');
   const [locationId, setLocationId] = useState(defaultLocationId ?? locations[0]?.id ?? '');
@@ -41,7 +43,7 @@ export function StartAuditForm({
 
   return (
     <div className="mb-8 rounded-xl border border-zinc-200 bg-surface p-4 shadow-sm dark:border-zinc-800">
-      <h2 className="mb-2 font-semibold text-foreground">Iniciar auditoría de hoy</h2>
+      <h2 className="mb-2 font-semibold text-foreground">{heading}</h2>
       <div className="flex flex-wrap gap-2">
         {locations.length > 1 && (
           <select

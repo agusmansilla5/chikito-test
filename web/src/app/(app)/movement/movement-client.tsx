@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { Product, Category, Area, MovementType } from '@/lib/types';
+import type { Product, Category, Area, MovementType, Unit } from '@/lib/types';
+import { UNIT_OPTIONS } from '@/lib/types';
 import { findSimilarProducts } from '@/lib/matching';
 import { createProduct, createCategory, createArea } from '../products/actions';
 import { registerMovement } from './actions';
@@ -29,6 +30,7 @@ export function MovementClient({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [type, setType] = useState<MovementType>('entrada');
   const [quantity, setQuantity] = useState('');
+  const [unit, setUnit] = useState<Unit>('u');
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -163,7 +165,7 @@ export function MovementClient({
       return;
     }
     setSubmitting(true);
-    const result = await registerMovement(selectedProduct.id, type, qty, note.trim() || null);
+    const result = await registerMovement(selectedProduct.id, type, qty, note.trim() || null, unit);
     setSubmitting(false);
     if (result.error) {
       setError(result.error);
@@ -174,6 +176,7 @@ export function MovementClient({
     setNote('');
     setQuery('');
     setType('entrada');
+    setUnit('u');
   }
 
   return (
@@ -419,12 +422,25 @@ export function MovementClient({
           </div>
 
           <label className="mb-1 block text-sm font-medium text-foreground">Cantidad</label>
-          <input
-            type="number"
-            className="mb-3 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-          />
+          <div className="mb-3 flex gap-2">
+            <input
+              type="number"
+              className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+            <select
+              value={unit}
+              onChange={(e) => setUnit(e.target.value as Unit)}
+              className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
+            >
+              {UNIT_OPTIONS.map((u) => (
+                <option key={u.value} value={u.value}>
+                  {u.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <label className="mb-1 block text-sm font-medium text-foreground">Nota (opcional)</label>
           <input
