@@ -15,13 +15,15 @@ export async function startAudit(note: string | null, locationId: string, respon
   if (!locationId) return { error: 'Elegí un sector.' };
   if (!responsibleName.trim()) return { error: 'Ingresá el nombre y apellido del responsable del stock.' };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('audits')
-    .insert({ started_by: user.id, note, location_id: locationId, responsible_name: responsibleName.trim() });
-  if (error) return { error: error.message };
+    .insert({ started_by: user.id, note, location_id: locationId, responsible_name: responsibleName.trim() })
+    .select('id')
+    .single();
+  if (error) return { error: error.message, auditId: null };
   revalidatePath('/audits');
   revalidatePath('/dashboard');
-  return { error: null };
+  return { error: null, auditId: data.id as string };
 }
 
 // El .select().maybeSingle() no es solo para leer el resultado: la policy de

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Location } from '@/lib/types';
 import { startAudit } from './actions';
 import { setLocation } from '../locations/actions';
@@ -14,6 +15,7 @@ export function StartAuditForm({
   defaultLocationId: string | null;
   heading?: string;
 }) {
+  const router = useRouter();
   const [note, setNote] = useState('');
   const [responsibleName, setResponsibleName] = useState('');
   const [locationId, setLocationId] = useState(defaultLocationId ?? locations[0]?.id ?? '');
@@ -44,7 +46,10 @@ export function StartAuditForm({
     }
     setNote('');
     setResponsibleName('');
-    window.location.reload();
+    // Va directo al detalle de la auditoría recién creada (planilla de
+    // conteo + cierre + export ya armados ahí), en vez de quedarse en esta
+    // misma pantalla esperando un click aparte en "Ver detalle".
+    router.push(`/audits/${result.auditId}`);
   }
 
   return (
