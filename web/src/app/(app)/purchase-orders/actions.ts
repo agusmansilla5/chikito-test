@@ -11,8 +11,16 @@ export type PurchaseOrderItemInput = {
   unit_cost: number | null;
 };
 
+export type ReceivedItemInput = {
+  item_id: string;
+  received_quantity: number;
+};
+
 export async function createPurchaseOrder(
   supplierId: string,
+  orderDate: string,
+  amount: number | null,
+  shippingDetail: string | null,
   note: string | null,
   items: PurchaseOrderItemInput[]
 ) {
@@ -29,7 +37,16 @@ export async function createPurchaseOrder(
 
   const { data: order, error } = await supabase
     .from('purchase_orders')
-    .insert({ supplier_id: supplierId, location_id: locationId, note, created_by: user.id })
+    .insert({
+      supplier_id: supplierId,
+      location_id: locationId,
+      order_date: orderDate,
+      amount,
+      shipping_detail: shippingDetail,
+      note,
+      created_by: user.id,
+      status: 'pendiente_envio',
+    })
     .select()
     .single();
   if (error) return { error: error.message, id: null };
@@ -48,9 +65,12 @@ export async function createPurchaseOrder(
   return { error: null, id: order.id as string };
 }
 
-export async function receivePurchaseOrder(id: string) {
+export async function receivePurchaseOrder(id: string, receivedItems?: ReceivedItemInput[]) {
   const supabase = await createClient();
-  const { error } = await supabase.rpc('receive_purchase_order', { order_id: id });
+  const { error } = await supabase.rpc('receive_purchase_order', {
+    order_id: id,
+    received_items: receivedItems && receivedItems.length > 0 ? receivedItems : null,
+  });
   if (error) return { error: error.message };
 
   revalidatePath('/purchase-orders');
@@ -65,7 +85,7 @@ export async function cancelPurchaseOrder(id: string) {
     .from('purchase_orders')
     .update({ status: 'cancelada' })
     .eq('id', id)
-    .eq('status', 'pendiente');
+    .in('status', ['pendiente', 'pendiente_envio']);
   if (error) return { error: error.message };
 
   revalidatePath('/purchase-orders');
@@ -79,4 +99,43 @@ export async function deletePurchaseOrder(id: string) {
 
   revalidatePath('/purchase-orders');
   redirect('/purchase-orders');
+}
+
+export async function createPurchaseOrderPayment(
+  orderId: string,
+  amount: number,
+  paidAt: string,
+  method: string | null,
+  receiptPath: string | null
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'No autenticado.', payment: null };
+
+  const { data, error } = await supabase
+    .from('purchase_order_payments')
+    .insert({
+      purchase_order_id: orderId,
+      amount,
+      paid_at: paidAt,
+      method,
+      receipt_path: receiptPath,
+      created_by: user.id,
+    })
+    .select()
+    .single();
+  if (error) return { error: error.message, payment: null };
+
+  revalidatePath(`/purchase-orders/${orderId}`);
+  revalidatePath('/purchase-orders');
+  return { error: null, payment: data };
+}
+
+export async function getPaymentReceiptUrl(path: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage.from('comprobantes-pedidos').createSignedUrl(path, 60 * 10);
+  if (error) return { error: error.message, url: null };
+  return { error: null, url: data.signedUrl };
 }

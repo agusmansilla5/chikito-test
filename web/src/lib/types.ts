@@ -74,15 +74,34 @@ export type StockMovement = {
   profiles?: { full_name: string } | null;
 };
 
+export type SupplierFulfillmentMode = 'envio' | 'retiro';
+
 export type Supplier = {
   id: string;
   name: string;
   phone: string | null;
   email: string | null;
   notes: string | null;
+  fulfillment_mode: SupplierFulfillmentMode | null;
+  cbu_cvu: string | null;
+  alias: string | null;
+  bank_name: string | null;
+  account_holder: string | null;
 };
 
-export type PurchaseOrderStatus = 'pendiente' | 'recibida' | 'cancelada';
+export type SupplierProduct = {
+  id: string;
+  supplier_id: string;
+  product_id: string;
+  default_quantity: number | null;
+  default_unit_cost: number | null;
+  products?: { name: string } | null;
+};
+
+// 'pendiente' es un valor legado (órdenes creadas antes de este campo) - las
+// órdenes nuevas arrancan en 'pendiente_envio'. Ambos se tratan igual en la
+// UI (mismo color, mismos botones disponibles).
+export type PurchaseOrderStatus = 'pendiente' | 'pendiente_envio' | 'recibida' | 'cancelada';
 
 export type PurchaseOrderItem = {
   id: string;
@@ -90,6 +109,7 @@ export type PurchaseOrderItem = {
   product_id: string;
   quantity: number;
   unit_cost: number | null;
+  received_quantity: number | null;
   products?: { name: string } | null;
 };
 
@@ -99,8 +119,28 @@ export type PurchaseOrder = {
   location_id: string;
   status: PurchaseOrderStatus;
   note: string | null;
+  order_date: string;
+  amount: number | null;
+  shipping_detail: string | null;
   created_at: string;
   received_at: string | null;
-  suppliers?: { name: string } | null;
+  suppliers?:
+    | (Pick<Supplier, 'name' | 'phone' | 'email' | 'cbu_cvu' | 'alias' | 'bank_name' | 'account_holder'> & {
+        name: string;
+      })
+    | null;
   locations?: { name: string } | null;
 };
+
+export type PurchaseOrderPayment = {
+  id: string;
+  purchase_order_id: string;
+  amount: number;
+  paid_at: string;
+  method: string | null;
+  receipt_path: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+export type PaymentStatus = 'pendiente' | 'parcial' | 'pagado';

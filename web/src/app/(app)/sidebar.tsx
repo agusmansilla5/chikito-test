@@ -42,23 +42,12 @@ const NAV_ITEMS = [
   },
   {
     href: '/purchase-orders',
-    label: 'Órdenes de compra',
+    label: 'Proveedores y Pedidos',
     icon: (
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.94-4.928 2.446-7.706a1.125 1.125 0 0 0-1.11-1.313H5.106M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
-      />
-    ),
-  },
-  {
-    href: '/suppliers',
-    label: 'Proveedores',
-    icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3.75 21h16.5M4.5 3h15l-.75 6h-13.5L4.5 3Zm.75 6v12m13.5-12v12M9 21v-4.5a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5V21"
       />
     ),
   },
@@ -134,7 +123,9 @@ export function Sidebar({
 
       <nav className="flex-1 space-y-1 p-3">
         {items.map((item) => {
-          const isActive = pathname?.startsWith(item.href);
+          const isActive =
+            pathname?.startsWith(item.href) ||
+            (item.href === '/purchase-orders' && pathname?.startsWith('/suppliers'));
           return (
             <Link
               key={item.href}

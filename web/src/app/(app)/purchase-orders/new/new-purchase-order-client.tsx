@@ -1,10 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Product, Supplier } from '@/lib/types';
+import type { Product, Supplier, SupplierProduct } from '@/lib/types';
+import { formatDate } from '@/lib/date';
+import { loadDraft, saveDraft, clearDraft } from '@/lib/order-draft';
 import { createSupplier } from '../../suppliers/actions';
 import { createPurchaseOrder, type PurchaseOrderItemInput } from '../actions';
+import { QuickAddProductModal } from './quick-add-product-modal';
 
 type LineItem = {
   product: Product;
@@ -12,35 +15,113 @@ type LineItem = {
   unitCost: string;
 };
 
+type DraftItem = { productId: string; quantity: string; unitCost: string };
+
+type Draft = {
+  supplierId: string;
+  orderDate: string;
+  amount: string;
+  shippingDetail: string;
+  note: string;
+  items: DraftItem[];
+};
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function NewPurchaseOrderClient({
   initialSuppliers,
+  supplierProducts,
   products,
+  locationId,
+  locationName,
 }: {
   initialSuppliers: Supplier[];
+  supplierProducts: SupplierProduct[];
   products: Product[];
+  locationId: string;
+  locationName: string;
 }) {
   const router = useRouter();
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [supplierId, setSupplierId] = useState<string>('');
   const [newSupplierName, setNewSupplierName] = useState('');
   const [creatingSupplier, setCreatingSupplier] = useState(false);
+  const [orderDate, setOrderDate] = useState(todayIso());
+  const [amount, setAmount] = useState('');
+  const [shippingDetail, setShippingDetail] = useState('');
   const [note, setNote] = useState('');
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<LineItem[]>([]);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [restoredNotice, setRestoredNotice] = useState(false);
+
+  const restoring = useRef(true);
+
+  // Restaura un borrador sin enviar de este local, si existe. localStorage no
+  // existe en el server, así que esto solo puede pasar post-montaje (no se
+  // puede hacer con un initializer de useState sin romper la hidratación).
+  useEffect(() => {
+    const draft = loadDraft<Draft>(locationId);
+    if (draft) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync intencional con localStorage post-montaje, ver comentario arriba
+      setSupplierId(draft.supplierId);
+      setOrderDate(draft.orderDate || todayIso());
+      setAmount(draft.amount);
+      setShippingDetail(draft.shippingDetail);
+      setNote(draft.note);
+      const restoredItems = draft.items
+        .map((di) => {
+          const product = products.find((p) => p.id === di.productId);
+          return product ? { product, quantity: di.quantity, unitCost: di.unitCost } : null;
+        })
+        .filter((i): i is LineItem => i !== null);
+      setItems(restoredItems);
+      setRestoredNotice(true);
+    }
+    restoring.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationId]);
+
+  // Guarda el borrador con debounce cada vez que cambia algo relevante.
+  useEffect(() => {
+    if (restoring.current) return;
+    const timeout = setTimeout(() => {
+      const draft: Draft = {
+        supplierId,
+        orderDate,
+        amount,
+        shippingDetail,
+        note,
+        items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity, unitCost: i.unitCost })),
+      };
+      saveDraft(locationId, draft);
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, [locationId, supplierId, orderDate, amount, shippingDetail, note, items]);
 
   const filteredProducts = useMemo(() => {
     const term = query.trim().toLowerCase();
     const available = products.filter((p) => !items.some((i) => i.product.id === p.id));
-    if (!term) return available;
+    if (!term) return [];
     return available.filter(
       (p) => p.name.toLowerCase().includes(term) || (p.barcode ?? '').toLowerCase().includes(term)
     );
   }, [products, query, items]);
 
-  function addItem(p: Product) {
-    setItems((prev) => [...prev, { product: p, quantity: '1', unitCost: p.cost_price != null ? String(p.cost_price) : '' }]);
+  const habitualProducts = useMemo(
+    () => supplierProducts.filter((sp) => sp.supplier_id === supplierId),
+    [supplierProducts, supplierId]
+  );
+
+  function addItem(p: Product, quantity = '1', unitCost?: string) {
+    setItems((prev) => [
+      ...prev,
+      { product: p, quantity, unitCost: unitCost ?? (p.cost_price != null ? String(p.cost_price) : '') },
+    ]);
     setQuery('');
   }
 
@@ -52,10 +133,39 @@ export function NewPurchaseOrderClient({
     setItems((prev) => prev.map((i) => (i.product.id === productId ? { ...i, [field]: value } : i)));
   }
 
+  function loadHabitualOrder() {
+    if (habitualProducts.length === 0) return;
+    setItems((prev) => {
+      const existingIds = new Set(prev.map((i) => i.product.id));
+      const added: LineItem[] = [];
+      for (const sp of habitualProducts) {
+        if (existingIds.has(sp.product_id)) continue;
+        const product = products.find((p) => p.id === sp.product_id);
+        if (!product) continue;
+        added.push({
+          product,
+          quantity: sp.default_quantity != null ? String(sp.default_quantity) : '1',
+          unitCost: sp.default_unit_cost != null ? String(sp.default_unit_cost) : product.cost_price != null ? String(product.cost_price) : '',
+        });
+      }
+      return [...prev, ...added];
+    });
+  }
+
   async function handleCreateSupplier() {
     const trimmed = newSupplierName.trim();
     if (!trimmed) return;
-    const result = await createSupplier(trimmed, null, null, null);
+    const result = await createSupplier({
+      name: trimmed,
+      phone: null,
+      email: null,
+      notes: null,
+      fulfillment_mode: null,
+      cbu_cvu: null,
+      alias: null,
+      bank_name: null,
+      account_holder: null,
+    });
     if (result.error || !result.supplier) {
       setError(result.error);
       return;
@@ -91,17 +201,67 @@ export function NewPurchaseOrderClient({
     }
 
     setSubmitting(true);
-    const result = await createPurchaseOrder(supplierId, note.trim() || null, parsedItems);
+    const result = await createPurchaseOrder(
+      supplierId,
+      orderDate,
+      amount.trim() ? Number(amount) : null,
+      shippingDetail.trim() || null,
+      note.trim() || null,
+      parsedItems
+    );
     setSubmitting(false);
     if (result.error) {
       setError(result.error);
       return;
     }
+    clearDraft(locationId);
     router.push(`/purchase-orders/${result.id}`);
   }
 
   return (
     <div className="max-w-2xl">
+      {restoredNotice && (
+        <div className="mb-4 flex items-center justify-between rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent">
+          <span>Se restauró un borrador que no habías enviado.</span>
+          <button
+            onClick={() => {
+              setItems([]);
+              setSupplierId('');
+              setAmount('');
+              setShippingDetail('');
+              setNote('');
+              clearDraft(locationId);
+              setRestoredNotice(false);
+            }}
+            className="font-medium underline"
+          >
+            Descartar
+          </button>
+        </div>
+      )}
+
+      <div className="mb-3 flex gap-2">
+        <div className="flex-1">
+          <label className="mb-1 block text-sm font-medium text-foreground">Fecha del pedido</label>
+          <input
+            type="date"
+            value={orderDate}
+            onChange={(e) => setOrderDate(e.target.value)}
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
+          />
+          <p className="mt-1 text-xs text-foreground">{formatDate(`${orderDate}T00:00:00`)}</p>
+        </div>
+        <div className="flex-1">
+          <label className="mb-1 block text-sm font-medium text-foreground">Destino / Local</label>
+          <input
+            type="text"
+            value={locationName}
+            disabled
+            className="w-full rounded-md border border-zinc-300 bg-background px-3 py-2 text-sm text-foreground dark:border-zinc-700"
+          />
+        </div>
+      </div>
+
       <label className="mb-1 block text-sm font-medium text-foreground">Proveedor</label>
       {!creatingSupplier ? (
         <div className="mb-1 flex gap-2">
@@ -148,7 +308,35 @@ export function NewPurchaseOrderClient({
         </div>
       )}
 
-      <label className="mb-1 mt-4 block text-sm font-medium text-foreground">Nota (opcional)</label>
+      {supplierId && habitualProducts.length > 0 && (
+        <button
+          onClick={loadHabitualOrder}
+          className="mb-4 mt-2 rounded-md border border-accent/40 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/10"
+        >
+          📋 Cargar pedido habitual ({habitualProducts.length})
+        </button>
+      )}
+
+      <label className="mb-1 mt-4 block text-sm font-medium text-foreground">Monto ($)</label>
+      <input
+        type="number"
+        step="0.01"
+        placeholder="Estimado o exacto"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        className="mb-4 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
+      />
+
+      <label className="mb-1 block text-sm font-medium text-foreground">Detalle de envío / retiro</label>
+      <input
+        type="text"
+        placeholder="Ej: Envía mañana a la mañana / Lo retiramos nosotros"
+        value={shippingDetail}
+        onChange={(e) => setShippingDetail(e.target.value)}
+        className="mb-4 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
+      />
+
+      <label className="mb-1 block text-sm font-medium text-foreground">Nota (opcional)</label>
       <input
         type="text"
         value={note}
@@ -157,13 +345,21 @@ export function NewPurchaseOrderClient({
       />
 
       <label className="mb-1 block text-sm font-medium text-foreground">Agregar productos</label>
-      <input
-        type="text"
-        placeholder="Buscar por nombre o código..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="mb-2 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
-      />
+      <div className="mb-2 flex gap-2">
+        <input
+          type="text"
+          placeholder="Buscar por nombre o código..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1 rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
+        />
+        <button
+          onClick={() => setQuickAddOpen(true)}
+          className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600"
+        >
+          + Crear producto
+        </button>
+      </div>
       {query && (
         <div className="mb-3 max-h-40 overflow-y-auto rounded-md border border-zinc-200 dark:border-zinc-800">
           {filteredProducts.length === 0 && (
@@ -234,8 +430,19 @@ export function NewPurchaseOrderClient({
         disabled={submitting}
         className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
       >
-        {submitting ? 'Creando...' : 'Crear orden de compra'}
+        {submitting ? 'Creando...' : 'Crear pedido'}
       </button>
+
+      {quickAddOpen && (
+        <QuickAddProductModal
+          initialName={query}
+          onClose={() => setQuickAddOpen(false)}
+          onCreated={(product) => {
+            addItem(product);
+            setQuickAddOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

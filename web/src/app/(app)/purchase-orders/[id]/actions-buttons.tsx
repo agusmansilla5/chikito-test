@@ -2,32 +2,71 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { receivePurchaseOrder, cancelPurchaseOrder, deletePurchaseOrder } from '../actions';
+import type { Supplier } from '@/lib/types';
+import { cancelPurchaseOrder, deletePurchaseOrder } from '../actions';
+import { ReceiveModal } from './receive-modal';
+import { PaymentModal } from './payment-modal';
 
-export function ReceiveButton({ id }: { id: string }) {
+export function ReceiveButton({ orderId, items }: { orderId: string; items: { id: string; name: string; quantity: number }[] }) {
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-
-  async function handleReceive() {
-    if (!confirm('¿Confirmás la recepción de esta orden? Se va a sumar el stock y actualizar el costo de los productos.')) return;
-    setSubmitting(true);
-    const result = await receivePurchaseOrder(id);
-    setSubmitting(false);
-    if (result.error) {
-      alert(result.error);
-      return;
-    }
-    router.refresh();
-  }
+  const [open, setOpen] = useState(false);
 
   return (
-    <button
-      onClick={handleReceive}
-      disabled={submitting}
-      className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-50"
-    >
-      {submitting ? 'Recibiendo...' : 'Recibir orden'}
-    </button>
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
+      >
+        Marcar como recibido
+      </button>
+      {open && (
+        <ReceiveModal
+          orderId={orderId}
+          items={items}
+          onClose={() => setOpen(false)}
+          onDone={() => {
+            setOpen(false);
+            router.refresh();
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+export function PayButton({
+  orderId,
+  supplier,
+  remaining,
+}: {
+  orderId: string;
+  supplier: Pick<Supplier, 'name' | 'cbu_cvu' | 'alias' | 'bank_name' | 'account_holder'> | null;
+  remaining: number | null;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-md border border-accent/40 px-4 py-2 text-sm font-medium text-accent hover:bg-accent/10"
+      >
+        Registrar pago
+      </button>
+      {open && (
+        <PaymentModal
+          orderId={orderId}
+          supplier={supplier}
+          remaining={remaining}
+          onClose={() => setOpen(false)}
+          onDone={() => {
+            setOpen(false);
+            router.refresh();
+          }}
+        />
+      )}
+    </>
   );
 }
 
@@ -36,7 +75,7 @@ export function CancelButton({ id }: { id: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   async function handleCancel() {
-    if (!confirm('¿Cancelar esta orden de compra?')) return;
+    if (!confirm('¿Cancelar este pedido?')) return;
     setSubmitting(true);
     const result = await cancelPurchaseOrder(id);
     setSubmitting(false);
@@ -53,7 +92,7 @@ export function CancelButton({ id }: { id: string }) {
       disabled={submitting}
       className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-foreground hover:bg-background disabled:opacity-50 dark:border-zinc-700"
     >
-      {submitting ? 'Cancelando...' : 'Cancelar orden'}
+      {submitting ? 'Cancelando...' : 'Cancelar pedido'}
     </button>
   );
 }
@@ -62,7 +101,7 @@ export function DeleteButton({ id }: { id: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   async function handleDelete() {
-    if (!confirm('¿Eliminar esta orden de compra? Esta acción no se puede deshacer.')) return;
+    if (!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
     setSubmitting(true);
     await deletePurchaseOrder(id);
     setSubmitting(false);
