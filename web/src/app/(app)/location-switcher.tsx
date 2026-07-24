@@ -70,132 +70,142 @@ export function LocationSwitcher({
 
   return (
     <div className="rounded-md border border-zinc-300 dark:border-zinc-700">
-      <div className="flex items-center">
-        <button
-          type="button"
-          onClick={() => handleSelect(ALL_LOCATIONS_VALUE)}
-          disabled={isPending}
-          className={`flex flex-1 items-center gap-2 truncate px-3 py-2 text-left text-sm font-semibold disabled:opacity-50 ${
-            isAll ? 'text-accent' : 'text-foreground'
-          }`}
-        >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-label={open ? 'Contraer sectores' : 'Expandir sectores'}
+        className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold ${
+          isAll ? 'text-accent' : 'text-foreground'
+        }`}
+      >
+        <span className="flex-1 truncate">
           🏠 NIDO
           {!isAll && currentSectorName && (
-            <span className="truncate text-xs font-normal text-foreground">· {currentSectorName}</span>
+            <span className="ml-1 truncate text-xs font-normal text-foreground">· {currentSectorName}</span>
           )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-label={open ? 'Contraer sectores' : 'Expandir sectores'}
-          className="px-3 py-2 text-xs text-foreground"
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`h-4 w-4 shrink-0 text-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         >
-          {open ? '▾' : '▸'}
-        </button>
-      </div>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
 
       {open && (
-        <div className="border-t border-zinc-200 pl-3 dark:border-zinc-800">
+        <div className="border-t border-zinc-200 dark:border-zinc-800">
           <button
             type="button"
             onClick={() => handleSelect(ALL_LOCATIONS_VALUE)}
-            className={`flex w-full items-center px-3 py-2 text-left text-sm hover:bg-background ${
+            disabled={isPending}
+            className={`flex w-full items-center px-3 py-2 text-left text-sm hover:bg-background disabled:opacity-50 ${
               isAll ? 'font-semibold text-accent' : 'text-foreground'
             }`}
           >
-            Vista general (todos los locales)
+            🏠 NIDO <span className="ml-1 text-xs font-normal text-foreground">(todos los sectores)</span>
           </button>
 
-          {locations.map((l) => (
-            <div key={l.id} className="flex items-center border-t border-zinc-100 dark:border-zinc-800">
-              {editingId === l.id ? (
-                <div className="flex flex-1 items-center gap-1 px-2 py-1.5">
-                  <input
-                    autoFocus
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(l.id)}
-                    className="w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleSaveEdit(l.id)}
-                    className="px-1 text-accent"
-                    aria-label="Guardar nombre"
-                  >
-                    ✓
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(null)}
-                    className="px-1 text-foreground"
-                    aria-label="Cancelar edición"
-                  >
-                    ×
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(l.id)}
-                    className={`flex-1 truncate px-3 py-2 text-left text-sm hover:bg-background ${
-                      selectedValue === l.id ? 'font-semibold text-accent' : 'text-foreground'
-                    }`}
-                  >
-                    📍 {l.name}
-                  </button>
-                  {isAdmin && (
+          <p className="px-3 pb-1 pt-3 text-xs font-bold uppercase tracking-wide text-foreground">Sectores</p>
+
+          <div className="pl-3">
+            {locations.map((l) => (
+              <div key={l.id} className="flex items-center border-t border-zinc-100 dark:border-zinc-800">
+                {editingId === l.id ? (
+                  <div className="flex flex-1 items-center gap-1 px-2 py-1.5">
+                    <input
+                      autoFocus
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(l.id)}
+                      className="w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"
+                    />
                     <button
                       type="button"
-                      onClick={() => startEdit(l)}
-                      className="px-2 text-foreground hover:text-accent"
-                      aria-label={`Editar ${l.name}`}
+                      onClick={() => handleSaveEdit(l.id)}
+                      className="px-1 text-accent"
+                      aria-label="Guardar nombre"
                     >
-                      ✏️
+                      ✓
                     </button>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      className="px-1 text-foreground"
+                      aria-label="Cancelar edición"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(l.id)}
+                      className={`flex-1 truncate px-3 py-2 text-left text-sm hover:bg-background ${
+                        selectedValue === l.id ? 'font-semibold text-accent' : 'text-foreground'
+                      }`}
+                    >
+                      📍 {l.name}
+                    </button>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => startEdit(l)}
+                        className="px-2 text-foreground hover:text-accent"
+                        aria-label={`Editar ${l.name}`}
+                      >
+                        ✏️
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
 
-          {isAdmin && (
-            <div className="border-t border-zinc-100 p-2 dark:border-zinc-800">
-              {adding ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    autoFocus
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                    placeholder="Nombre del local"
-                    className="w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"
-                  />
-                  <button type="button" onClick={handleAdd} className="px-1 text-accent" aria-label="Agregar local">
-                    ✓
-                  </button>
+            {isAdmin && (
+              <div className="border-t border-zinc-100 p-2 dark:border-zinc-800">
+                {adding ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      autoFocus
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                      placeholder="Nombre del sector"
+                      className="w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700"
+                    />
+                    <button type="button" onClick={handleAdd} className="px-1 text-accent" aria-label="Agregar sector">
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdding(false)}
+                      className="px-1 text-foreground"
+                      aria-label="Cancelar"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => setAdding(false)}
-                    className="px-1 text-foreground"
-                    aria-label="Cancelar"
+                    onClick={() => setAdding(true)}
+                    className="w-full rounded px-2 py-1.5 text-left text-sm font-medium text-accent hover:bg-background"
                   >
-                    ×
+                    + Agregar sector
                   </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setAdding(true)}
-                  className="w-full rounded px-2 py-1.5 text-left text-sm font-medium text-accent hover:bg-background"
-                >
-                  + Agregar local
-                </button>
-              )}
-              {error && <p className="mt-1 px-2 text-xs text-red-600">{error}</p>}
-            </div>
-          )}
+                )}
+                {error && <p className="mt-1 px-2 text-xs text-red-600">{error}</p>}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
