@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/fix_product_stock_backfill_policy.sql (aplicado originalmente el 2026-07-21).
 -- Bug: crear un local nuevo (createLocation) o un producto nuevo (createProduct)
 -- intenta sembrar filas de product_stock en 0 para cada combinación
 -- producto+local, insertando directo desde la app (no a través del trigger
@@ -14,7 +15,8 @@ create policy "product_stock: admin y auditor crean" on product_stock
 
 -- Backfill retroactivo: crea en 0 cualquier combinación (producto, local)
 -- que debería existir y no existe todavía, para todos los locales/productos
--- ya creados que quedaron pisados por el bug.
+-- ya creados que quedaron pisados por el bug. En un proyecto nuevo (sin
+-- productos/locales todavía) este insert no afecta ninguna fila.
 insert into product_stock (product_id, location_id, quantity, min_stock)
 select p.id, l.id, 0, 0
 from products p

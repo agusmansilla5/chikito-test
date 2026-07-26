@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_suppliers_purchase_orders.sql (aplicado originalmente el 2026-07-20).
 -- Fase 1D: proveedores y órdenes de compra.
 -- Recibir una orden reutiliza stock_movements (y por lo tanto el trigger
 -- apply_stock_movement que ya mantiene product_stock al día), para que el

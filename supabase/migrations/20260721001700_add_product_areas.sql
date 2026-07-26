@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_product_areas.sql (aplicado originalmente el 2026-07-21).
 -- "Áreas" de stock (Cocina, Barra 1, Barra 2, Limpieza, Depósito, etc.):
 -- una etiqueta por producto independiente del rubro, para poder filtrar el
 -- catálogo por sector físico del negocio. Mismo patrón que categories.

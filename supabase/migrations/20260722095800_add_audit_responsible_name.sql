@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_audit_responsible_name.sql (aplicado originalmente el 2026-07-22).
 -- Nombre y apellido de la persona que efectivamente hizo el conteo (la cuenta
 -- que inicia sesión suele ser compartida entre varios empleados, así que esto
 -- identifica a la persona real, además de "started_by"/profiles que identifica

@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_locations.sql (aplicado originalmente el 2026-07-20).
 -- Multi-local: cada local tiene su propio stock. El stock deja de vivir en
 -- products.quantity/min_stock (quedan deprecadas, no se borran todavía) y pasa a
 -- vivir en product_stock, una fila por (producto, local).

@@ -11,18 +11,53 @@ App para gestionar el stock del local, con tres roles:
 ```
 mobile/     App móvil (Expo / React Native) — la usan admin y auditores en el local
 web/        Dashboard web (Next.js) — lo usan los jefes desde la PC, deployable en Vercel
-supabase/   Esquema SQL de la base de datos (Postgres + Auth + Realtime)
+supabase/   Migraciones versionadas (Postgres + Auth + Realtime), vía Supabase CLI
 ```
 
-Ambas apps comparten el mismo backend de Supabase.
+Ambas apps comparten el mismo backend de Supabase. El esquema de la base vive en
+[`supabase/migrations/`](supabase/migrations) como migraciones numeradas y versionadas — no
+se edita la base a mano desde el SQL Editor del dashboard.
 
 ## 1. Crear el proyecto en Supabase
 
 1. Andá a [supabase.com](https://supabase.com) y creá una cuenta y un proyecto nuevo (gratis).
-2. En el proyecto, abrí **SQL Editor > New query**, pegá el contenido de [`supabase/schema.sql`](supabase/schema.sql) y ejecutalo. Esto crea las tablas, roles y políticas de seguridad.
-3. En **Project Settings > API**, copiá:
+2. En **Project Settings > API**, copiá:
    - `Project URL`
    - `anon public` key
+   - `service_role` key (solo para el dashboard web, ver paso 4 de la sección web)
+3. Instalá la [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started) (o usá `npx supabase <comando>` sin instalarla globalmente).
+4. Conectá este repo con tu proyecto y aplicá todas las migraciones:
+
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <tu-project-ref>
+   npx supabase db push
+   ```
+
+   Esto crea todas las tablas, roles, funciones y políticas de seguridad, en el mismo
+   orden en que se fueron aplicando durante el desarrollo original.
+
+### Desarrollo local (opcional, requiere Docker)
+
+Para levantar Supabase completo en tu máquina (sin tocar el proyecto de producción):
+
+```bash
+npx supabase start   # requiere Docker Desktop corriendo
+npx supabase db reset   # aplica todas las migraciones desde cero
+```
+
+### Agregar un cambio de esquema nuevo
+
+```bash
+npx supabase migration new nombre_del_cambio
+# editá el archivo .sql que se creó en supabase/migrations/
+npx supabase db push   # lo aplica al proyecto remoto
+```
+
+No se crean más archivos `.sql` sueltos en `supabase/` — todo cambio de esquema es una
+migración nueva. `supabase/legacy-data-scripts/` guarda, solo como referencia histórica,
+los scripts de carga de datos puntuales de este comercio (usuarios de prueba, catálogo real
+de Cocina) que ya se aplicaron en producción y no forman parte del esquema reproducible.
 
 ## 2. Crear usuarios
 

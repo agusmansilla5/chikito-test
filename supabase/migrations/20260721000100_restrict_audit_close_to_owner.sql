@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/restrict_audit_close_to_owner.sql (aplicado originalmente el 2026-07-21).
 -- Riesgo señalado en la auditoría del código (punto 2, "integridad de datos"):
 -- la política de UPDATE en audits dejaba que cualquier admin/auditor cerrara o
 -- editara la nota de una auditoría iniciada por otra persona. Ahora un auditor

@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_categories.sql (aplicado originalmente el 2026-07-17).
 -- Categorías de productos (rubros: "sin alcohol", "con alcohol", "premium", etc.)
 create table categories (
   id uuid primary key default gen_random_uuid(),

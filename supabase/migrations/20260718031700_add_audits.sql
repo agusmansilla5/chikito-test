@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_audits.sql (aplicado originalmente el 2026-07-18).
 -- Auditorías de stock (sesiones de conteo, identificadas por fecha)
 create table audits (
   id uuid primary key default gen_random_uuid(),

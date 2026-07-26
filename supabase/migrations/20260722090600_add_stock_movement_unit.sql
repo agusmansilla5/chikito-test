@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_stock_movement_unit.sql (aplicado originalmente el 2026-07-22).
 -- Unidad de medida libre por movimiento (se elige en cada carga, no queda
 -- fija en el producto). No se toca product_stock.quantity ni el trigger que
 -- lo actualiza: sigue siendo un número acumulado simple, como hasta ahora.

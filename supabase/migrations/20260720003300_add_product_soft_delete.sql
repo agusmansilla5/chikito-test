@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_product_soft_delete.sql (aplicado originalmente el 2026-07-20).
 -- Los productos dejan de borrarse físicamente: "Eliminar" pasa a marcar el producto
 -- como inactivo (active = false) en vez de hacer DELETE, para no perder el historial
 -- de movimientos asociado (antes, borrar un producto arrastraba en cascada todos sus
@@ -16,4 +17,3 @@ alter table stock_movements
 -- Que un producto desactivado no siga apareciendo en la alerta de stock bajo.
 create or replace view low_stock_products as
   select * from products where quantity < min_stock and active = true;
-

@@ -1,5 +1,5 @@
+-- Migración formalizada a partir de supabase/schema.sql (aplicado originalmente el 2026-07-17).
 -- Esquema base para la app de control de stock
--- Ejecutar en el SQL Editor de Supabase (Project > SQL Editor > New query)
 
 -- 1. Roles de usuario
 create type user_role as enum ('admin', 'auditor', 'jefe');

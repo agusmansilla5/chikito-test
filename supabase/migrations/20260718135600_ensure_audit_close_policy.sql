@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/ensure_audit_close_policy.sql (aplicado originalmente el 2026-07-18).
 -- Asegura que la política para cerrar auditorías exista (seguro correrlo aunque ya exista)
 drop policy if exists "audits: admin y auditor cierran" on audits;
 create policy "audits: admin y auditor cierran" on audits

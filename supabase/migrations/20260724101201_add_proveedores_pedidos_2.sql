@@ -1,4 +1,5 @@
--- Proveedores y Pedidos (paso 2 de 2): correr DESPUÉS de
+-- Migración formalizada a partir de supabase/add_proveedores_pedidos_2.sql (aplicado originalmente el 2026-07-24).
+-- Proveedores y Pedidos (paso 2 de 2): corre DESPUÉS de
 -- add_proveedores_pedidos_1_enum.sql (ese agrega el valor de enum
 -- 'pendiente_envio' que acá se usa).
 --

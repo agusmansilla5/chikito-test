@@ -1,3 +1,4 @@
+-- Migración formalizada a partir de supabase/add_audit_delete_policy.sql (aplicado originalmente el 2026-07-21).
 -- Permite borrar auditorías del historial, solo admin. No existía ninguna
 -- policy de DELETE en audits, así que hoy está bloqueado por RLS (deny por
 -- default). Es seguro: stock_movements.audit_id referencia a audits con

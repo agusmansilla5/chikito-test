@@ -1,6 +1,11 @@
+-- Migración formalizada a partir de supabase/merge_duplicate_products.sql
+-- (aplicado originalmente el 2026-07-18, antes de add_unique_name.sql por
+-- requisito explícito del script original: el índice único de la siguiente
+-- migración fallaría si quedaran duplicados sin resolver).
+--
 -- Fusiona automáticamente productos duplicados (mismo nombre, ignorando mayúsculas/espacios):
 -- conserva el más antiguo, le suma el stock de los duplicados, les pasa el historial
--- de movimientos, y borra los duplicados. Corré esto ANTES de add_unique_name.sql.
+-- de movimientos, y borra los duplicados.
 do $$
 declare
   dup record;
@@ -37,9 +42,3 @@ begin
     where lower(btrim(name)) = dup.norm_name and id <> keep_id;
   end loop;
 end $$;
-
--- Verificación: no debería devolver filas
-select lower(btrim(name)), count(*)
-from products
-group by lower(btrim(name))
-having count(*) > 1;
