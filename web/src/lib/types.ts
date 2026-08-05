@@ -144,3 +144,48 @@ export type PurchaseOrderPayment = {
 };
 
 export type PaymentStatus = 'pendiente' | 'parcial' | 'pagado';
+
+export type ReservationVenue = 'nido' | 'canario' | 'room347' | 'el_pasillo';
+
+export const VENUE_OPTIONS: { value: ReservationVenue; label: string }[] = [
+  { value: 'nido', label: 'Nido' },
+  { value: 'canario', label: 'Canario' },
+  { value: 'room347', label: 'Room347' },
+  { value: 'el_pasillo', label: 'El Pasillo' },
+];
+
+export const VENUE_LABEL: Record<ReservationVenue, string> = {
+  nido: 'Nido',
+  canario: 'Canario',
+  room347: 'Room347',
+  el_pasillo: 'El Pasillo',
+};
+
+export type ReservationChipKind = 'promo' | 'tag';
+
+export type ReservationChipOption = {
+  id: string;
+  kind: ReservationChipKind;
+  label: string;
+  color: string;
+};
+
+export type Reservation = {
+  id: string;
+  venue: ReservationVenue;
+  event_at: string;
+  customer_name: string;
+  customer_age: number | null;
+  customer_phone: string | null;
+  promo_chip_id: string | null;
+  promo_detail: string | null;
+  is_gift: boolean;
+  total_amount: number;
+  deposit_amount: number;
+  deposit_detail: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  promo?: Pick<ReservationChipOption, 'id' | 'label' | 'color'> | null;
+  reservation_tag_links?: { reservation_chip_options: Pick<ReservationChipOption, 'id' | 'label' | 'color'> }[];
+};

@@ -63,6 +63,18 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: '/reservas',
+    label: 'Gestión de Reservas',
+    adminOnly: true,
+    icon: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M5.25 5.25h13.5a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-12a1.5 1.5 0 0 1 1.5-1.5Z M8.25 12h1.5v1.5h-1.5zM11.25 12h1.5v1.5h-1.5zM14.25 12h1.5v1.5h-1.5zM8.25 15h1.5v1.5h-1.5zM11.25 15h1.5v1.5h-1.5z"
+      />
+    ),
+  },
+  {
     href: '/locations',
     label: 'Ubicaciones',
     adminOnly: true,
