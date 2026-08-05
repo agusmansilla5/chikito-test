@@ -10,6 +10,7 @@ import { ModuleTabs } from './module-tabs';
 import { HistoryFilters } from './history-filters';
 import { HistoryExport, type HistoryExportRow } from './history-export';
 import { PaymentStatusBadge } from './payment-status-badge';
+import { InlineEditField } from './inline-edit-field';
 
 type PurchaseOrderRow = PurchaseOrder & {
   suppliers?: { name: string } | null;
@@ -159,13 +160,15 @@ export default async function PurchaseOrdersPage({
               <th className="px-4 py-2 font-medium">Monto</th>
               <th className="px-4 py-2 font-medium">Estado</th>
               <th className="px-4 py-2 font-medium">Pago</th>
+              <th className="px-4 py-2 font-medium">Alias</th>
+              <th className="px-4 py-2 font-medium">Notas</th>
               <th className="px-4 py-2 font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {orderList.length === 0 && (
               <tr>
-                <td colSpan={isAllLocations ? 7 : 6} className="px-4 py-6 text-center text-foreground">
+                <td colSpan={isAllLocations ? 9 : 8} className="px-4 py-6 text-center text-foreground">
                   No se encontraron pedidos con estos filtros.
                 </td>
               </tr>
@@ -188,6 +191,12 @@ export default async function PurchaseOrdersPage({
                   </td>
                   <td className="px-4 py-2">
                     {o.status === 'cancelada' ? '—' : <PaymentStatusBadge status={paymentStatus} daysSinceOrder={daysSinceOrder} />}
+                  </td>
+                  <td className="px-4 py-2">
+                    <InlineEditField orderId={o.id} field="alias" value={o.alias} placeholder="+ agregar" />
+                  </td>
+                  <td className="px-4 py-2">
+                    <InlineEditField orderId={o.id} field="note" value={o.note} placeholder="+ agregar" />
                   </td>
                   <td className="px-4 py-2">
                     <Link href={`/purchase-orders/${o.id}`} className="font-medium text-accent hover:underline">

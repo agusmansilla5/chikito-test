@@ -119,6 +119,7 @@ export type PurchaseOrder = {
   location_id: string;
   status: PurchaseOrderStatus;
   note: string | null;
+  alias: string | null;
   order_date: string;
   amount: number | null;
   shipping_detail: string | null;

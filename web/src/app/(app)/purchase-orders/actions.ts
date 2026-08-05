@@ -133,6 +133,16 @@ export async function createPurchaseOrderPayment(
   return { error: null, payment: data };
 }
 
+export async function updatePurchaseOrderFields(id: string, fields: { alias?: string | null; note?: string | null }) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('purchase_orders').update(fields).eq('id', id);
+  if (error) return { error: error.message };
+
+  revalidatePath('/purchase-orders');
+  revalidatePath(`/purchase-orders/${id}`);
+  return { error: null };
+}
+
 export async function getPaymentReceiptUrl(path: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.storage.from('comprobantes-pedidos').createSignedUrl(path, 60 * 10);
