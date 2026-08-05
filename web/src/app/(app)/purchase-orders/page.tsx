@@ -2,36 +2,25 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
-import { formatPlainDate } from '@/lib/date';
 import { derivePaymentStatus, daysElapsed, totalPaid } from '@/lib/purchase-order-payment';
-import type { PurchaseOrder, PurchaseOrderStatus, Supplier } from '@/lib/types';
+import type { Supplier } from '@/lib/types';
 import { StatCard } from '../stat-card';
 import { ModuleTabs } from './module-tabs';
 import { HistoryFilters } from './history-filters';
 import { HistoryExport, type HistoryExportRow } from './history-export';
-import { PaymentStatusBadge } from './payment-status-badge';
-import { InlineEditField } from './inline-edit-field';
-
-type PurchaseOrderRow = PurchaseOrder & {
-  suppliers?: { name: string } | null;
-  locations?: { name: string } | null;
-  purchase_order_payments?: { amount: number }[];
-};
+import { OrdersTable, type PurchaseOrderRow } from './orders-table';
 
 const PAGE_SIZE = 20;
 
-const STATUS_LABEL: Record<PurchaseOrderStatus, string> = {
-  pendiente: 'Pendiente de envío',
-  pendiente_envio: 'Pendiente de envío',
-  recibida: 'Recibida',
-  cancelada: 'Cancelada',
-};
+type SortKey = 'proveedor' | 'fecha' | 'monto' | 'estado' | 'alias' | 'notas';
 
-const STATUS_CLASS: Record<PurchaseOrderStatus, string> = {
-  pendiente: 'bg-accent/15 text-accent',
-  pendiente_envio: 'bg-accent/15 text-accent',
-  recibida: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400',
-  cancelada: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',
+const SORT_COLUMNS: Record<SortKey, { column: string; foreignTable?: string }> = {
+  proveedor: { column: 'name', foreignTable: 'suppliers' },
+  fecha: { column: 'order_date' },
+  monto: { column: 'amount' },
+  estado: { column: 'status' },
+  alias: { column: 'alias' },
+  notas: { column: 'note' },
 };
 
 function sevenDaysAgoIso(): string {
@@ -41,13 +30,31 @@ function sevenDaysAgoIso(): string {
 export default async function PurchaseOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; status?: string; supplier?: string; from?: string; to?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    status?: string;
+    supplier?: string;
+    from?: string;
+    to?: string;
+    sort?: string;
+    dir?: string;
+  }>;
 }) {
-  const { page: pageParam, status: statusFilter, supplier: supplierFilter, from: dateFrom, to: dateTo } =
-    await searchParams;
+  const {
+    page: pageParam,
+    status: statusFilter,
+    supplier: supplierFilter,
+    from: dateFrom,
+    to: dateTo,
+    sort: sortParam,
+    dir: dirParam,
+  } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+  const sortKey: SortKey = sortParam && sortParam in SORT_COLUMNS ? (sortParam as SortKey) : 'fecha';
+  const sortAscending = dirParam === 'asc';
+  const sortConfig = SORT_COLUMNS[sortKey];
 
   const profile = await requireProfile();
   const supabase = await createClient();
@@ -77,12 +84,15 @@ export default async function PurchaseOrdersPage({
     ? await applyFilters(
         supabase.from('purchase_orders').select(baseSelect, { count: 'exact' })
       )
-        .order('order_date', { ascending: false })
+        .order(sortConfig.column, { ascending: sortAscending, foreignTable: sortConfig.foreignTable })
         .range(from, to)
     : { data: [], count: 0 };
 
   const { data: exportOrders } = canQuery
-    ? await applyFilters(supabase.from('purchase_orders').select(baseSelect)).order('order_date', { ascending: false })
+    ? await applyFilters(supabase.from('purchase_orders').select(baseSelect)).order(sortConfig.column, {
+        ascending: sortAscending,
+        foreignTable: sortConfig.foreignTable,
+      })
     : { data: [] };
 
   let weeklyQuery = supabase.from('purchase_orders').select('amount').gte('order_date', sevenDaysAgoIso());
@@ -100,6 +110,8 @@ export default async function PurchaseOrdersPage({
     if (supplierFilter && supplierFilter !== 'all') params.set('supplier', supplierFilter);
     if (dateFrom) params.set('from', dateFrom);
     if (dateTo) params.set('to', dateTo);
+    if (sortParam) params.set('sort', sortParam);
+    if (dirParam) params.set('dir', dirParam);
     params.set('page', String(targetPage));
     return `/purchase-orders?${params.toString()}`;
   }
@@ -157,71 +169,7 @@ export default async function PurchaseOrdersPage({
         <HistoryExport orders={exportRows} />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-surface shadow-sm dark:border-zinc-800">
-        <table className="w-full text-sm">
-          <thead className="bg-background text-left text-foreground">
-            <tr>
-              {isAllLocations && <th className="px-4 py-2 font-medium">Local</th>}
-              <th className="px-4 py-2 font-medium">Proveedor</th>
-              <th className="px-4 py-2 font-medium">Fecha</th>
-              <th className="px-4 py-2 font-medium">Monto</th>
-              <th className="px-4 py-2 font-medium">Estado</th>
-              <th className="px-4 py-2 font-medium">Pago</th>
-              <th className="px-4 py-2 font-medium">Alias</th>
-              <th className="px-4 py-2 font-medium">Notas</th>
-              <th className="px-4 py-2 font-medium">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orderList.length === 0 && (
-              <tr>
-                <td colSpan={isAllLocations ? 9 : 8} className="px-4 py-6 text-center text-foreground">
-                  No se encontraron pedidos con estos filtros.
-                </td>
-              </tr>
-            )}
-            {orderList.map((o) => {
-              const paymentStatus = derivePaymentStatus(o.amount, o.purchase_order_payments ?? []);
-              const daysSinceOrder = daysElapsed(o.order_date);
-              return (
-                <tr key={o.id} className="border-t border-zinc-100 hover:bg-background dark:border-zinc-800">
-                  {isAllLocations && <td className="px-4 py-2 text-foreground">{o.locations?.name ?? '—'}</td>}
-                  <td className="px-4 py-2 font-medium text-foreground">{o.suppliers?.name ?? '—'}</td>
-                  <td className="px-4 py-2 text-foreground">{formatPlainDate(o.order_date)}</td>
-                  <td className="px-4 py-2 text-foreground">
-                    {o.amount != null ? o.amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' }) : '—'}
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[o.status]}`}>
-                      {STATUS_LABEL[o.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    {o.status === 'cancelada' ? '—' : <PaymentStatusBadge status={paymentStatus} daysSinceOrder={daysSinceOrder} />}
-                  </td>
-                  <td className="px-4 py-2">
-                    <InlineEditField orderId={o.id} field="alias" value={o.alias} placeholder="+ agregar" />
-                  </td>
-                  <td className="px-4 py-2">
-                    <InlineEditField
-                      orderId={o.id}
-                      field="note"
-                      value={o.note}
-                      placeholder="+ agregar"
-                      maxWidthClass="max-w-[9rem]"
-                    />
-                  </td>
-                  <td className="px-4 py-2">
-                    <Link href={`/purchase-orders/${o.id}`} className="font-medium text-accent hover:underline">
-                      Ver detalle
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <OrdersTable orders={orderList} isAllLocations={isAllLocations} />
 
       <div className="mb-4 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard

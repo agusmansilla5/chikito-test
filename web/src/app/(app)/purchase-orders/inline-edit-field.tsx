@@ -9,7 +9,7 @@ export function InlineEditField({
   field,
   value,
   placeholder,
-  maxWidthClass = 'max-w-[16rem]',
+  maxWidthClass = 'max-w-full',
 }: {
   orderId: string;
   field: 'alias' | 'note';
