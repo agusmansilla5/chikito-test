@@ -61,7 +61,7 @@ export function InlineEditField({
       type="button"
       onClick={() => setEditing(true)}
       title="Click para editar"
-      className="block max-w-[16rem] truncate text-left text-foreground hover:underline"
+      className="block max-w-[16rem] whitespace-normal break-words text-left text-foreground hover:underline"
     >
       {value?.trim() ? value : <span className="text-foreground/40">{placeholder}</span>}
     </button>
