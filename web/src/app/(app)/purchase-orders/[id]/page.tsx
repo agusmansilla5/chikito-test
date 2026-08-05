@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
-import { formatDate, formatDateTime } from '@/lib/date';
+import { formatDate, formatDateTime, formatPlainDate } from '@/lib/date';
 import { derivePaymentStatus, daysElapsed, totalPaid } from '@/lib/purchase-order-payment';
 import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderPayment, PurchaseOrderStatus } from '@/lib/types';
 import { ReceiveButton, PayButton, CancelButton, DeleteButton } from './actions-buttons';
@@ -76,7 +76,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
         <div>
           <h1 className="text-2xl font-semibold text-foreground">{orderData.suppliers?.name ?? 'Proveedor'}</h1>
           <p className="mt-1 text-sm text-foreground">
-            {formatDate(`${orderData.order_date}T00:00:00`)}
+            {formatPlainDate(orderData.order_date)}
             {orderData.locations?.name && ` · ${orderData.locations.name}`}
             {orderData.received_at && ` · Recibido el ${formatDate(orderData.received_at)}`}
           </p>
@@ -195,7 +195,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
             {paymentList.map((p) => (
               <li key={p.id} className="flex items-center justify-between py-2 text-sm">
                 <span className="text-foreground">
-                  {formatDate(`${p.paid_at}T00:00:00`)} · {p.amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+                  {formatPlainDate(p.paid_at)} · {p.amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                   {p.method && ` · ${p.method}`}
                 </span>
                 {p.receipt_path && <ReceiptLink path={p.receipt_path} />}

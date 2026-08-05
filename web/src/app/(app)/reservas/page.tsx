@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { requireProfile } from '@/lib/dal';
 import { createClient } from '@/lib/supabase/server';
 import { VENUE_LABEL, type Reservation, type ReservationChipOption, type ReservationVenue } from '@/lib/types';
-import { formatDate } from '@/lib/date';
+import { formatPlainDate } from '@/lib/date';
 import { StatCard } from '../stat-card';
 import { ReservasFilters } from './reservas-filters';
 import { ReservasExport, type ReservationExportRow } from './reservas-export';
@@ -90,8 +90,8 @@ export default async function ReservasPage({
 
   const filterLabel = [
     isVenue(venueFilter) ? VENUE_LABEL[venueFilter] : 'Todas las sedes',
-    dateFrom ? `desde ${formatDate(`${dateFrom}T00:00:00`)}` : null,
-    dateTo ? `hasta ${formatDate(`${dateTo}T00:00:00`)}` : null,
+    dateFrom ? `desde ${formatPlainDate(dateFrom)}` : null,
+    dateTo ? `hasta ${formatPlainDate(dateTo)}` : null,
   ]
     .filter(Boolean)
     .join(' — ');

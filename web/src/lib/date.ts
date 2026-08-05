@@ -33,6 +33,18 @@ export function formatDateTime(value: string | Date): string {
   });
 }
 
+// Para columnas SQL "date" (order_date, paid_at, filtros de rango de fecha):
+// no tienen hora ni huso horario propios, son un día calendario tal cual se
+// guardaron ("2026-07-24"). Pasarlas por formatDate (que fija todo a huso
+// horario de Córdoba) las corre un día para atrás en un server que corre en
+// UTC, porque "2026-07-24T00:00:00" se interpreta como medianoche UTC y
+// Córdoba (UTC-3) todavía está en el día anterior a esa hora. Por eso estas
+// fechas se formatean como texto plano, sin pasar por Date en ningún momento.
+export function formatPlainDate(value: string): string {
+  const [year, month, day] = value.slice(0, 10).split('-');
+  return `${day}/${month}/${year}`;
+}
+
 export function formatWeekday(value: string | Date): string {
   return new Date(value).toLocaleDateString('es-AR', {
     timeZone: APP_TIME_ZONE,

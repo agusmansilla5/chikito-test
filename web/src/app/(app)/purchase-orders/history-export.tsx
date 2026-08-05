@@ -1,7 +1,7 @@
 'use client';
 
 import type { PurchaseOrderStatus } from '@/lib/types';
-import { formatDate } from '@/lib/date';
+import { formatPlainDate } from '@/lib/date';
 
 export type HistoryExportRow = {
   supplierName: string;
@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<PurchaseOrderStatus, string> = {
 function rowsFor(orders: HistoryExportRow[]) {
   return orders.map((o) => ({
     Proveedor: o.supplierName,
-    Fecha: formatDate(`${o.orderDate}T00:00:00`),
+    Fecha: formatPlainDate(o.orderDate),
     Monto: o.amount ?? '',
     Pagado: o.paid,
     Saldo: o.amount != null ? Math.max(0, o.amount - o.paid) : '',

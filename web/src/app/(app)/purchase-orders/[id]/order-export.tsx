@@ -1,6 +1,6 @@
 'use client';
 
-import { formatDate } from '@/lib/date';
+import { formatPlainDate } from '@/lib/date';
 import { buildOrderMessage, buildWhatsappLink } from '@/lib/whatsapp-message';
 
 type ExportItem = { name: string; quantity: number; unit_cost: number | null };
@@ -49,7 +49,7 @@ export function OrderExport({
     doc.setFontSize(14);
     doc.text('Pedido a proveedor', 14, 16);
     doc.setFontSize(10);
-    doc.text(`Fecha: ${formatDate(`${orderDate}T00:00:00`)}`, 14, 24);
+    doc.text(`Fecha: ${formatPlainDate(orderDate)}`, 14, 24);
     doc.text(`Local: ${locationName}`, 14, 30);
     doc.text(`Proveedor: ${supplierName}`, 14, 36);
     const shippingY = shippingDetail ? 42 : 36;

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Product, Supplier, SupplierProduct } from '@/lib/types';
-import { formatDate } from '@/lib/date';
+import { formatPlainDate } from '@/lib/date';
 import { loadDraft, saveDraft, clearDraft } from '@/lib/order-draft';
 import { createSupplier } from '../../suppliers/actions';
 import { createPurchaseOrder, type PurchaseOrderItemInput } from '../actions';
@@ -249,7 +249,7 @@ export function NewPurchaseOrderClient({
             onChange={(e) => setOrderDate(e.target.value)}
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700"
           />
-          <p className="mt-1 text-xs text-foreground">{formatDate(`${orderDate}T00:00:00`)}</p>
+          <p className="mt-1 text-xs text-foreground">{formatPlainDate(orderDate)}</p>
         </div>
         <div className="flex-1">
           <label className="mb-1 block text-sm font-medium text-foreground">Destino / Local</label>

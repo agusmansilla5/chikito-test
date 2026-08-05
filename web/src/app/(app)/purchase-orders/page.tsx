@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/dal';
 import { getLocations, getSelectedLocationValue, ALL_LOCATIONS_VALUE } from '@/lib/location';
-import { formatDate } from '@/lib/date';
+import { formatPlainDate } from '@/lib/date';
 import { derivePaymentStatus, daysElapsed, totalPaid } from '@/lib/purchase-order-payment';
 import type { PurchaseOrder, PurchaseOrderStatus, Supplier } from '@/lib/types';
 import { StatCard } from '../stat-card';
@@ -180,7 +180,7 @@ export default async function PurchaseOrdersPage({
                 <tr key={o.id} className="border-t border-zinc-100 hover:bg-background dark:border-zinc-800">
                   {isAllLocations && <td className="px-4 py-2 text-foreground">{o.locations?.name ?? '—'}</td>}
                   <td className="px-4 py-2 font-medium text-foreground">{o.suppliers?.name ?? '—'}</td>
-                  <td className="px-4 py-2 text-foreground">{formatDate(`${o.order_date}T00:00:00`)}</td>
+                  <td className="px-4 py-2 text-foreground">{formatPlainDate(o.order_date)}</td>
                   <td className="px-4 py-2 text-foreground">
                     {o.amount != null ? o.amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' }) : '—'}
                   </td>
