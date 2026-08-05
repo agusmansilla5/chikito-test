@@ -133,6 +133,102 @@ export async function createPurchaseOrderPayment(
   return { error: null, payment: data };
 }
 
+async function requireAdmin(): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'No autenticado.' };
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  if (profile?.role !== 'admin') return { ok: false, error: 'No autorizado.' };
+  return { ok: true };
+}
+
+export type PurchaseOrderEditItemInput = {
+  id: string | null;
+  product_id: string;
+  quantity: number;
+  unit_cost: number | null;
+};
+
+export type PurchaseOrderEditInput = {
+  supplierId: string;
+  orderDate: string;
+  amount: number | null;
+  shippingDetail: string | null;
+  note: string | null;
+  alias: string | null;
+  items: PurchaseOrderEditItemInput[];
+};
+
+// A diferencia del resto de las acciones de este módulo (que confían 100% en
+// RLS, admin+auditor), editar retroactivamente un pedido ya recibido puede
+// desalinear el stock ya cargado con lo que quede en el registro corregido
+// -- se restringe a admin, igual que Eliminar, con un chequeo explícito acá
+// (la política RLS de purchase_orders/items sigue permitiendo auditor por
+// las otras acciones, así que no alcanza con RLS sola para este caso).
+export async function updatePurchaseOrder(orderId: string, input: PurchaseOrderEditInput) {
+  const guard = await requireAdmin();
+  if (!guard.ok) return { error: guard.error };
+
+  if (input.items.length === 0) return { error: 'Agregá al menos un producto.' };
+  for (const item of input.items) {
+    if (!item.quantity || item.quantity <= 0) return { error: 'Todas las cantidades deben ser mayores a cero.' };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('purchase_orders')
+    .update({
+      supplier_id: input.supplierId,
+      order_date: input.orderDate,
+      amount: input.amount,
+      shipping_detail: input.shippingDetail,
+      note: input.note,
+      alias: input.alias,
+    })
+    .eq('id', orderId);
+  if (error) return { error: error.message };
+
+  const { data: existingItems, error: existingError } = await supabase
+    .from('purchase_order_items')
+    .select('id')
+    .eq('purchase_order_id', orderId);
+  if (existingError) return { error: existingError.message };
+
+  const submittedIds = new Set(input.items.filter((i) => i.id).map((i) => i.id as string));
+  const idsToDelete = (existingItems ?? []).map((i) => i.id as string).filter((id) => !submittedIds.has(id));
+
+  if (idsToDelete.length > 0) {
+    const { error: deleteError } = await supabase.from('purchase_order_items').delete().in('id', idsToDelete);
+    if (deleteError) return { error: deleteError.message };
+  }
+
+  for (const item of input.items) {
+    if (item.id) {
+      const { error: updateError } = await supabase
+        .from('purchase_order_items')
+        .update({ product_id: item.product_id, quantity: item.quantity, unit_cost: item.unit_cost })
+        .eq('id', item.id);
+      if (updateError) return { error: updateError.message };
+    } else {
+      const { error: insertError } = await supabase.from('purchase_order_items').insert({
+        purchase_order_id: orderId,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_cost: item.unit_cost,
+      });
+      if (insertError) return { error: insertError.message };
+    }
+  }
+
+  revalidatePath('/purchase-orders');
+  revalidatePath(`/purchase-orders/${orderId}`);
+  return { error: null };
+}
+
 export async function updatePurchaseOrderFields(id: string, fields: { alias?: string | null; note?: string | null }) {
   const supabase = await createClient();
   const { error } = await supabase.from('purchase_orders').update(fields).eq('id', id);

@@ -104,6 +104,13 @@ export default async function PurchaseOrdersPage({
     return `/purchase-orders?${params.toString()}`;
   }
 
+  // Resumen de $ del listado filtrado (excluye canceladas: no representan
+  // una obligación de pago real, ni pendiente ni cumplida).
+  const payableOrders = ((exportOrders as PurchaseOrderRow[]) ?? []).filter((o) => o.status !== 'cancelada');
+  const filteredTotalAmount = payableOrders.reduce((sum, o) => sum + (o.amount ?? 0), 0);
+  const filteredTotalPaid = payableOrders.reduce((sum, o) => sum + totalPaid(o.purchase_order_payments ?? []), 0);
+  const filteredTotalPending = Math.max(0, filteredTotalAmount - filteredTotalPaid);
+
   const exportRows: HistoryExportRow[] = ((exportOrders as PurchaseOrderRow[]) ?? []).map((o) => {
     const paid = totalPaid(o.purchase_order_payments ?? []);
     const status = derivePaymentStatus(o.amount, o.purchase_order_payments ?? []);
@@ -208,6 +215,21 @@ export default async function PurchaseOrdersPage({
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="mb-4 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatCard
+          label="Monto total (filtrado)"
+          value={filteredTotalAmount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+        />
+        <StatCard
+          label="Abonado a proveedores"
+          value={filteredTotalPaid.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+        />
+        <StatCard
+          label="Pendiente de pago a proveedores"
+          value={filteredTotalPending.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+        />
       </div>
 
       {totalPages > 1 && (
