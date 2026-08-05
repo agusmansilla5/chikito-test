@@ -203,7 +203,13 @@ export default async function PurchaseOrdersPage({
                     <InlineEditField orderId={o.id} field="alias" value={o.alias} placeholder="+ agregar" />
                   </td>
                   <td className="px-4 py-2">
-                    <InlineEditField orderId={o.id} field="note" value={o.note} placeholder="+ agregar" />
+                    <InlineEditField
+                      orderId={o.id}
+                      field="note"
+                      value={o.note}
+                      placeholder="+ agregar"
+                      maxWidthClass="max-w-[9rem]"
+                    />
                   </td>
                   <td className="px-4 py-2">
                     <Link href={`/purchase-orders/${o.id}`} className="font-medium text-accent hover:underline">
