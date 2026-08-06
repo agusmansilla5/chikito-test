@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { VENUE_OPTIONS, type Reservation, type ReservationChipOption, type ReservationVenue } from '@/lib/types';
 import { ChipManager } from './chip-manager';
 import { createReservation, updateReservation, type ReservationInput } from './actions';
-import type { ParsedReservationDraft } from './parse-actions';
 
 const inputClass =
   'w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-accent focus:outline-none dark:border-zinc-700';
@@ -13,29 +12,12 @@ const labelClass = 'mb-1 block text-sm font-medium text-foreground';
 function toLocalDateTimeInput(iso: string | null): string {
   if (!iso) return '';
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// Empareja las etiquetas sugeridas por la IA con los chips ya existentes
-// (match exacto primero, si no por inclusión) — si no hay coincidencia, el
-// admin las agrega a mano desde el ChipManager.
-function findChipIdByLabel(chips: ReservationChipOption[], label: string | null): string | null {
-  if (!label) return null;
-  const normalized = label.trim().toLowerCase();
-  if (!normalized) return null;
-  const exact = chips.find((c) => c.label.trim().toLowerCase() === normalized);
-  if (exact) return exact.id;
-  const partial = chips.find(
-    (c) => c.label.trim().toLowerCase().includes(normalized) || normalized.includes(c.label.trim().toLowerCase())
-  );
-  return partial?.id ?? null;
-}
-
 export function ReservationModal({
   reservation,
-  draft,
   promoChips,
   tagChips,
   defaultVenue,
@@ -44,7 +26,6 @@ export function ReservationModal({
   onChipsChange,
 }: {
   reservation: Reservation | null;
-  draft?: ParsedReservationDraft | null;
   promoChips: ReservationChipOption[];
   tagChips: ReservationChipOption[];
   defaultVenue: ReservationVenue;
@@ -53,46 +34,25 @@ export function ReservationModal({
   onChipsChange: (kind: 'promo' | 'tag', chips: ReservationChipOption[]) => void;
 }) {
   const isEdit = !!reservation;
-  const [venue, setVenue] = useState<ReservationVenue>(reservation?.venue ?? draft?.venue ?? defaultVenue);
-  const [eventAt, setEventAt] = useState(() => {
-    if (reservation) return toLocalDateTimeInput(reservation.event_at);
-    if (draft?.eventAtIso) {
-      const fromDraft = toLocalDateTimeInput(draft.eventAtIso);
-      if (fromDraft) return fromDraft;
-    }
-    return toLocalDateTimeInput(new Date().toISOString());
-  });
-  const [customerName, setCustomerName] = useState(reservation?.customer_name ?? draft?.customerName ?? '');
-  const [customerAge, setCustomerAge] = useState(
-    reservation?.customer_age != null
-      ? String(reservation.customer_age)
-      : draft?.customerAge != null
-        ? String(draft.customerAge)
-        : ''
+  const [venue, setVenue] = useState<ReservationVenue>(reservation?.venue ?? defaultVenue);
+  const [eventAt, setEventAt] = useState(
+    reservation ? toLocalDateTimeInput(reservation.event_at) : toLocalDateTimeInput(new Date().toISOString())
   );
-  const [customerPhone, setCustomerPhone] = useState(reservation?.customer_phone ?? draft?.customerPhone ?? '');
-  const [promoChipId, setPromoChipId] = useState<string | null>(
-    reservation?.promo_chip_id ?? (draft ? findChipIdByLabel(promoChips, draft.promoLabelGuess) : null)
+  const [customerName, setCustomerName] = useState(reservation?.customer_name ?? '');
+  const [customerAge, setCustomerAge] = useState(reservation?.customer_age != null ? String(reservation.customer_age) : '');
+  const [customerPhone, setCustomerPhone] = useState(reservation?.customer_phone ?? '');
+  const [guestCount, setGuestCount] = useState(reservation?.guest_count != null ? String(reservation.guest_count) : '');
+  const [serviceDetail, setServiceDetail] = useState(reservation?.service_detail ?? '');
+  const [promoChipId, setPromoChipId] = useState<string | null>(reservation?.promo_chip_id ?? null);
+  const [promoDetail, setPromoDetail] = useState(reservation?.promo_detail ?? '');
+  const [isGift, setIsGift] = useState(reservation?.is_gift ?? false);
+  const [giftDetail, setGiftDetail] = useState(reservation?.gift_detail ?? '');
+  const [totalAmount, setTotalAmount] = useState(reservation ? String(reservation.total_amount) : '');
+  const [depositAmount, setDepositAmount] = useState(reservation ? String(reservation.deposit_amount) : '0');
+  const [depositDetail, setDepositDetail] = useState(reservation?.deposit_detail ?? '');
+  const [tagChipIds, setTagChipIds] = useState<string[]>(
+    reservation?.reservation_tag_links?.map((l) => l.reservation_chip_options.id) ?? []
   );
-  const [promoDetail, setPromoDetail] = useState(reservation?.promo_detail ?? draft?.promoDetail ?? '');
-  const [isGift, setIsGift] = useState(reservation?.is_gift ?? draft?.isGift ?? false);
-  const [totalAmount, setTotalAmount] = useState(
-    reservation ? String(reservation.total_amount) : draft?.totalAmount != null ? String(draft.totalAmount) : ''
-  );
-  const [depositAmount, setDepositAmount] = useState(
-    reservation ? String(reservation.deposit_amount) : draft?.depositAmount != null ? String(draft.depositAmount) : '0'
-  );
-  const [depositDetail, setDepositDetail] = useState(reservation?.deposit_detail ?? draft?.depositDetail ?? '');
-  const [tagChipIds, setTagChipIds] = useState<string[]>(() => {
-    if (reservation) return reservation.reservation_tag_links?.map((l) => l.reservation_chip_options.id) ?? [];
-    if (draft) {
-      const matched = draft.tagLabelGuesses
-        .map((label) => findChipIdByLabel(tagChips, label))
-        .filter((id): id is string => id !== null);
-      return [...new Set(matched)];
-    }
-    return [];
-  });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -121,9 +81,12 @@ export function ReservationModal({
       customerName: customerName.trim(),
       customerAge: customerAge.trim() ? Number(customerAge) : null,
       customerPhone: customerPhone.trim() || null,
+      guestCount: guestCount.trim() ? Number(guestCount) : null,
+      serviceDetail: serviceDetail.trim() || null,
       promoChipId,
       promoDetail: promoDetail.trim() || null,
       isGift,
+      giftDetail: giftDetail.trim() || null,
       totalAmount: total,
       depositAmount: deposit,
       depositDetail: depositDetail.trim() || null,
@@ -148,12 +111,6 @@ export function ReservationModal({
             ×
           </button>
         </div>
-
-        {draft && !isEdit && (
-          <div className="mb-4 rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent">
-            Datos completados por IA a partir de lo que pegaste — revisá y corregí antes de guardar.
-          </div>
-        )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
@@ -181,6 +138,26 @@ export function ReservationModal({
               type="number"
               value={customerAge}
               onChange={(e) => setCustomerAge(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Cantidad de invitados</label>
+            <input
+              type="number"
+              value={guestCount}
+              onChange={(e) => setGuestCount(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Servicio</label>
+            <input
+              type="text"
+              value={serviceDetail}
+              onChange={(e) => setServiceDetail(e.target.value)}
+              placeholder="Ej: 1 pizza cada 5"
               className={inputClass}
             />
           </div>
@@ -278,6 +255,17 @@ export function ReservationModal({
               className={inputClass}
             />
           </div>
+        </div>
+
+        <div className="mt-3">
+          <label className={labelClass}>Detalle de regalo (qué se regala y qué no)</label>
+          <textarea
+            value={giftDetail}
+            onChange={(e) => setGiftDetail(e.target.value)}
+            placeholder="Ej: se regala la entrada y una botella, no se regala el servicio de mesa"
+            rows={2}
+            className={inputClass}
+          />
         </div>
 
         <div className="mt-3">

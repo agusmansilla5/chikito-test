@@ -6,7 +6,6 @@ import { VENUE_LABEL, type Reservation, type ReservationChipOption, type Reserva
 import { formatDateTime } from '@/lib/date';
 import { deleteReservation } from './actions';
 import { ReservationModal } from './reservation-modal';
-import { NewReservationChooser } from './new-reservation-chooser';
 
 function chipPillStyle(color: string) {
   return { backgroundColor: `${color}22`, color, borderColor: `${color}66` };
@@ -74,6 +73,7 @@ export function ReservasClient({
               <th className="px-4 py-2 font-medium">Fecha y hora</th>
               <th className="px-4 py-2 font-medium">Cliente</th>
               <th className="px-4 py-2 font-medium">Teléfono</th>
+              <th className="px-4 py-2 font-medium">Invitados</th>
               <th className="px-4 py-2 font-medium">Promo</th>
               <th className="px-4 py-2 font-medium">Regalo</th>
               <th className="px-4 py-2 font-medium">Monto</th>
@@ -86,7 +86,7 @@ export function ReservasClient({
           <tbody>
             {reservations.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-4 py-6 text-center text-foreground">
+                <td colSpan={12} className="px-4 py-6 text-center text-foreground">
                   No se encontraron reservas con estos filtros.
                 </td>
               </tr>
@@ -99,6 +99,7 @@ export function ReservasClient({
                   <td className="px-4 py-2 text-foreground">{formatDateTime(r.event_at)}</td>
                   <td className="px-4 py-2 font-medium text-foreground">{r.customer_name}</td>
                   <td className="px-4 py-2 text-foreground">{r.customer_phone ?? '—'}</td>
+                  <td className="px-4 py-2 text-foreground">{r.guest_count ?? '—'}</td>
                   <td className="px-4 py-2">
                     {r.promo ? (
                       <span
@@ -150,19 +151,9 @@ export function ReservasClient({
         </table>
       </div>
 
-      {editing === 'new' && (
-        <NewReservationChooser
-          promoChips={promoChips}
-          tagChips={tagChips}
-          defaultVenue={defaultVenue}
-          onClose={() => setEditing(null)}
-          onDone={handleDone}
-          onChipsChange={handleChipsChange}
-        />
-      )}
-      {editing && editing !== 'new' && (
+      {editing && (
         <ReservationModal
-          reservation={editing}
+          reservation={editing === 'new' ? null : editing}
           promoChips={promoChips}
           tagChips={tagChips}
           defaultVenue={defaultVenue}

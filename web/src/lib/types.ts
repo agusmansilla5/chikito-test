@@ -178,9 +178,12 @@ export type Reservation = {
   customer_name: string;
   customer_age: number | null;
   customer_phone: string | null;
+  guest_count: number | null;
+  service_detail: string | null;
   promo_chip_id: string | null;
   promo_detail: string | null;
   is_gift: boolean;
+  gift_detail: string | null;
   total_amount: number;
   deposit_amount: number;
   deposit_detail: string | null;

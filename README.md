@@ -96,8 +96,7 @@ Abrí [http://localhost:3000](http://localhost:3000).
 2. En [vercel.com](https://vercel.com), importá el repo y seleccioná la carpeta `web` como **Root Directory**.
 3. Cargá las variables de entorno `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en la configuración del proyecto en Vercel.
 4. (Opcional, para gestionar usuarios desde `/users`) Cargá también `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Settings → API → service_role). **Nunca** le pongas el prefijo `NEXT_PUBLIC_` a esta variable: si lo hace, queda expuesta en el navegador.
-5. (Opcional, para "Pegar texto"/"Pegar imagen" en Reservas → Nueva reserva) Cargá también `ANTHROPIC_API_KEY` (conseguila en [console.anthropic.com](https://console.anthropic.com)). Tampoco lleva el prefijo `NEXT_PUBLIC_`. Cada carga tiene un costo mínimo de uso de la API de Anthropic.
-6. Deploy.
+5. Deploy.
 
 La app móvil **no** se despliega en Vercel — corre en los celulares vía Expo Go (para pruebas) o como build instalable con EAS Build (para producción, más adelante).
 

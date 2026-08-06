@@ -22,9 +22,12 @@ export type ReservationInput = {
   customerName: string;
   customerAge: number | null;
   customerPhone: string | null;
+  guestCount: number | null;
+  serviceDetail: string | null;
   promoChipId: string | null;
   promoDetail: string | null;
   isGift: boolean;
+  giftDetail: string | null;
   totalAmount: number;
   depositAmount: number;
   depositDetail: string | null;
@@ -49,9 +52,12 @@ export async function createReservation(input: ReservationInput) {
       customer_name: input.customerName,
       customer_age: input.customerAge,
       customer_phone: input.customerPhone,
+      guest_count: input.guestCount,
+      service_detail: input.serviceDetail,
       promo_chip_id: input.promoChipId,
       promo_detail: input.promoDetail,
       is_gift: input.isGift,
+      gift_detail: input.giftDetail,
       total_amount: input.totalAmount,
       deposit_amount: input.depositAmount,
       deposit_detail: input.depositDetail,
@@ -86,9 +92,12 @@ export async function updateReservation(id: string, input: ReservationInput) {
       customer_name: input.customerName,
       customer_age: input.customerAge,
       customer_phone: input.customerPhone,
+      guest_count: input.guestCount,
+      service_detail: input.serviceDetail,
       promo_chip_id: input.promoChipId,
       promo_detail: input.promoDetail,
       is_gift: input.isGift,
+      gift_detail: input.giftDetail,
       total_amount: input.totalAmount,
       deposit_amount: input.depositAmount,
       deposit_detail: input.depositDetail,
