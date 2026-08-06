@@ -6,6 +6,7 @@ import { VENUE_LABEL, type Reservation, type ReservationChipOption, type Reserva
 import { formatDateTime } from '@/lib/date';
 import { deleteReservation } from './actions';
 import { ReservationModal } from './reservation-modal';
+import { NewReservationChooser } from './new-reservation-chooser';
 
 function chipPillStyle(color: string) {
   return { backgroundColor: `${color}22`, color, borderColor: `${color}66` };
@@ -149,9 +150,19 @@ export function ReservasClient({
         </table>
       </div>
 
-      {editing && (
+      {editing === 'new' && (
+        <NewReservationChooser
+          promoChips={promoChips}
+          tagChips={tagChips}
+          defaultVenue={defaultVenue}
+          onClose={() => setEditing(null)}
+          onDone={handleDone}
+          onChipsChange={handleChipsChange}
+        />
+      )}
+      {editing && editing !== 'new' && (
         <ReservationModal
-          reservation={editing === 'new' ? null : editing}
+          reservation={editing}
           promoChips={promoChips}
           tagChips={tagChips}
           defaultVenue={defaultVenue}
